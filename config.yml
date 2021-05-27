@@ -1,0 +1,16 @@
+# ItemFrame Shop config file
+
+# Price rounding after the dot (0-2)
+price-round-after-dot: 2
+
+# Minimum price for a shop (>= 0)
+# The value is exclusive
+# Setting the price to 0 will close the shop
+price-minimum: 0
+
+# Maximum price for a shop (> price-minimum), 0 = no limit
+# The value is inclusive
+price-maximum: 0
+
+# Do Op players have permission to create and change AdminShops by default
+adminshop-op: true

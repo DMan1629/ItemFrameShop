@@ -1,0 +1,33 @@
+name: ItemFrameShop
+main: me.DMan16.ItemFrameShop.Main
+version: 1.0
+depend: [Vault]
+description: ItemFrame Shop
+author: DMan16
+api-version: 1.13
+
+commands:
+  ItemFrameShop:
+    aliases: [ifs]
+    permission: itemframeshop.command
+permissions:
+  itemframeshop.create.inventory: {default: true}
+  itemframeshop.create.frameshop: {default: false}
+  itemframeshop.change.othershop: {default: false}
+  itemframeshop.adminshop: {default: false}
+  itemframeshop.command: {default: false}
+  itemframeshop.create.*:
+    default: false
+    children:
+      itemframeshop.create.inventory: true
+      itemframeshop.create.frameshop: true
+  itemframeshop.change.*:
+    default: false
+    children:
+      itemframeshop.change.othershop: true
+  itemframeshop.*:
+    default: op
+    children:
+      itemframeshop.create.*: true
+      itemframeshop.change.*: true
+      itemframeshop.command: true
