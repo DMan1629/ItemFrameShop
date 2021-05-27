@@ -12,6 +12,7 @@ import me.DMan16.ItemFrameShop.Shop.ShopListener;
 import me.DMan16.ItemFrameShop.Utils.EconomyManager;
 import me.DMan16.ItemFrameShop.Utils.Utils;
 import net.milkbowl.vault.economy.Economy;
+import org.bukkit.scheduler.BukkitRunnable;
 
 public class Main extends JavaPlugin {
 	private static Main instance;
@@ -19,22 +20,15 @@ public class Main extends JavaPlugin {
 	public static final String pluginNameColors = "&6&lItem&b&lFrame&a&lShop";
 	public static EconomyManager EconomyManager;
 	public static ItemFrameShopManager ItemFrameShopManager;
+	private int count = 0;
 
 	public void onEnable() {
 		instance = this;
 		saveDefaultConfig();
 		String versionMC = Bukkit.getServer().getVersion().split("\\(MC:")[1].split("\\)")[0].trim().split(" ")[0].trim();
 		if (Integer.parseInt(versionMC.split("\\.")[0]) < 1 || Integer.parseInt(versionMC.split("\\.")[1]) < 13) {
-			Utils.chatColorsLogPlugin("&cunsupported version! Minimum supported version: 1.12");
+			Utils.chatColorsLogPlugin("&cunsupported version! Minimum supported version: 1.13");
 			Bukkit.getPluginManager().disablePlugin(this);
-			return;
-		}
-		RegisteredServiceProvider<Economy> economyProvider = getServer().getServicesManager().getRegistration(Economy.class);
-		try {
-			EconomyManager = new EconomyManager((Economy) economyProvider.getProvider());
-		} catch (Exception e) {
-			Utils.chatColorsLogPlugin("&cno supported Economy provider found!");
-			Bukkit.getPluginManager().disablePlugin(getInstance());
 			return;
 		}
 		try {
@@ -45,9 +39,26 @@ public class Main extends JavaPlugin {
 			Bukkit.getPluginManager().disablePlugin(getInstance());
 			return;
 		}
-		new CommandListener();
-		new ShopListener();
-		Utils.chatColorsLogPlugin("&aLoaded, running on version: &f" + versionMC);
+		Utils.chatColorsLogPlugin("&fTrying to hook to Economy provider...");
+		new BukkitRunnable() {
+			public void run() {
+				count++;
+				if (count > 2 * 60) {
+					Utils.chatColorsLogPlugin("&cno supported Economy provider found!");
+					Bukkit.getPluginManager().disablePlugin(instance);
+					return;
+				}
+				RegisteredServiceProvider<Economy> economyProvider = getServer().getServicesManager().getRegistration(Economy.class);
+				try {
+					EconomyManager = new EconomyManager((Economy) economyProvider.getProvider());
+					Utils.chatColorsLogPlugin("&aHook to Economy provider!");
+					new CommandListener();
+					new ShopListener();
+					Utils.chatColorsLogPlugin("&aLoaded, running on version: &f" + versionMC);
+					this.cancel();
+				} catch (Exception e) {}
+			}
+		}.runTaskTimer(this,1,20);
 	}
 	
 	public static Main getInstance() {
