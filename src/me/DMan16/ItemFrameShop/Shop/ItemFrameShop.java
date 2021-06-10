@@ -1,11 +1,12 @@
 package me.DMan16.ItemFrameShop.Shop;
 
-import java.util.Arrays;
-import java.util.Objects;
-import java.util.UUID;
-
-import javax.annotation.Nullable;
-
+import me.DMan16.ItemFrameShop.Events.ItemFrameShopChangeEvent;
+import me.DMan16.ItemFrameShop.Events.ItemFrameShopCreateEvent;
+import me.DMan16.ItemFrameShop.Events.ItemFrameShopDeleteEvent;
+import me.DMan16.ItemFrameShop.Main;
+import me.DMan16.ItemFrameShop.Utils.*;
+import net.milkbowl.vault.economy.EconomyResponse;
+import net.milkbowl.vault.economy.EconomyResponse.ResponseType;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
@@ -13,16 +14,12 @@ import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.Chest;
 import org.bukkit.block.DoubleChest;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.ItemFrame;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
-import org.bukkit.event.block.BlockBreakEvent;
-import org.bukkit.event.block.BlockBurnEvent;
-import org.bukkit.event.block.BlockExplodeEvent;
-import org.bukkit.event.block.BlockPistonExtendEvent;
-import org.bukkit.event.block.BlockPistonRetractEvent;
-import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.block.*;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.hanging.HangingBreakEvent;
@@ -39,17 +36,10 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.scheduler.BukkitRunnable;
 
-import me.DMan16.ItemFrameShop.Main;
-import me.DMan16.ItemFrameShop.Events.ItemFrameShopChangeEvent;
-import me.DMan16.ItemFrameShop.Events.ItemFrameShopCreateEvent;
-import me.DMan16.ItemFrameShop.Events.ItemFrameShopDeleteEvent;
-import me.DMan16.ItemFrameShop.Utils.Listener;
-import me.DMan16.ItemFrameShop.Utils.ListenerInventory;
-import me.DMan16.ItemFrameShop.Utils.Permissions;
-import me.DMan16.ItemFrameShop.Utils.ReflectionUtils;
-import me.DMan16.ItemFrameShop.Utils.Utils;
-import net.milkbowl.vault.economy.EconomyResponse;
-import net.milkbowl.vault.economy.EconomyResponse.ResponseType;
+import javax.annotation.Nullable;
+import java.util.Arrays;
+import java.util.Objects;
+import java.util.UUID;
 
 public class ItemFrameShop extends Listener {
 	private static ItemStack empty = new ItemStack(Material.LIGHT_GRAY_STAINED_GLASS_PANE);
@@ -214,9 +204,17 @@ public class ItemFrameShop extends Listener {
 		return getAmount(this.type);
 	}
 	
+	public String getAmountStr() {
+		return getAmountStr(this.type,getAmount());
+	}
+	
+	private static String getAmountStr(ShopType type, int amount) {
+		return type == ShopType.ADMINSHOP ? "∞" : "" + amount;
+	}
+	
 	private int getAmount(ShopType type) {
 		int amount = 0;
-		if (type == null || type.isIndependent()) amount = type == ShopType.ADMINSHOP ? Integer.MAX_VALUE : this.amount;
+		if (type == null || type.isIndependent()) amount = /*type == ShopType.ADMINSHOP ? Integer.MAX_VALUE : */this.amount;
 		else {
 			Inventory inv = getInventory();
 			if (inv != null) for (ItemStack item : inv.getStorageContents()) if (Utils.isSame(item,getSellItem())) amount += item.getAmount();
@@ -252,7 +250,7 @@ public class ItemFrameShop extends Listener {
 	 */
 	public int addAmount(int amount) {
 		int old = getAmount();
-		if (amount <= 0) return old;
+//		if (amount <= 0) return old;
 		if (this.type != null && this.type.isIndependent() && this.type != ShopType.ADMINSHOP)
 			if (((long)old + (long)amount) <= Integer.MAX_VALUE) return setAmount(old + amount);
 		return old;
@@ -288,6 +286,7 @@ public class ItemFrameShop extends Listener {
 	
 	private boolean testRemove(int amount) {
 		if (amount <= 0 || this.type == null) return false;
+		if (this.type == ShopType.ADMINSHOP) return true;
 		if (amount > getAmount() || (this.type.requireInventory() && getInventory() == null)) return false;
 		return true;
 	}
@@ -308,7 +307,7 @@ public class ItemFrameShop extends Listener {
 		if (state == null || !(state instanceof InventoryHolder)) return null;
 		boolean barrel = state.getType().name().equals("BARREL");
 		boolean shulkerBox = state.getType().name().contains("SHULKER_BOX");
-		boolean chest = state.getType() == Material.CHEST;
+		boolean chest = state.getType() == Material.CHEST || state.getType() == Material.TRAPPED_CHEST;
 		
 		boolean allow = barrel || shulkerBox || chest;
 		if (!allow) return null;
@@ -330,13 +329,17 @@ public class ItemFrameShop extends Listener {
 		return player.getUniqueId().equals(ownerID);
 	}
 	
+	public boolean sameFrame(Entity entity) {
+		return entity != null && (entity instanceof ItemFrame) && entity.getUniqueId().equals(this.frame.getUniqueId());
+	}
+	
 	@Override
 	public boolean equals(Object obj) {
 		if (obj == null) return false;
 		if (!(obj instanceof ItemFrameShop)) return false;
 		ItemFrameShop shop = (ItemFrameShop) obj;
 		if (this == shop) return true;
-		return this.frame.equals(shop.frame);
+		return sameFrame(shop.frame);
 	}
 	
 	private boolean buy(Player player, int amount) {
@@ -368,7 +371,7 @@ public class ItemFrameShop extends Listener {
 	//Events
 	@EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
 	public void onItemFrameClickOff(PlayerInteractEntityEvent event) {
-		if (!event.getRightClicked().equals(this.frame)) return;
+		if (!sameFrame(event.getRightClicked())) return;
 		Player player = event.getPlayer();
 		if (player == null) {
 			event.setCancelled(true);
@@ -387,7 +390,7 @@ public class ItemFrameShop extends Listener {
 
 	@EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
 	public void onItemFrameClickMain(EntityDamageEvent event) {
-		if (!event.getEntity().equals(this.frame) || event.isCancelled() || !isShop()) return;
+		if (event.isCancelled() || !sameFrame(event.getEntity()) || !isShop()) return;
 		event.setCancelled(true);
 		if (!(event instanceof EntityDamageByEntityEvent)) return;
 		if (!(((EntityDamageByEntityEvent) event).getDamager() instanceof Player)) return;
@@ -397,7 +400,7 @@ public class ItemFrameShop extends Listener {
 				(this.type == ShopType.ADMINSHOP && Permissions.AdminShopPermission(player));
 		if (!allow) return;
 		ItemStack item = player.getInventory().getItemInMainHand();
-		if (Utils.isNull(item)) return;
+		if (!Utils.isSame(item,this.sellItem)) return;
 		boolean sneak = player.isSneaking();
 		int old = getAmount();
 		int change = addAmount(sneak ? item.getAmount() : 1) - old;
@@ -411,7 +414,8 @@ public class ItemFrameShop extends Listener {
 	
 	@EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
 	public void onItemFrameBreak(HangingBreakEvent event) {
-		if (!event.isCancelled() && event.getEntity().equals(this.frame) && isShop()) event.setCancelled(true);
+		if (event.isCancelled() || !(event.getEntity() instanceof ItemFrame) || !sameFrame(event.getEntity())) return;
+		if (isShop()) event.setCancelled(true);
 	}
 	
 	@EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
@@ -532,18 +536,19 @@ public class ItemFrameShop extends Listener {
 		private final int slotDelete = lines * 9 - 9;
 		
 		public EditMenu(Player player, boolean isCreate) {
-			super(Bukkit.createInventory(Objects.requireNonNull(player),lines * 9,Utils.chatColors("&bEdit &6Shop")));
+			super(Bukkit.createInventory(Objects.requireNonNull(player),lines * 9,Utils.chatColors("&b" + (isCreate ? "Create" : "Edit") + " &6Shop")));
 			this.player = player;
 			this.isCreate = isCreate;
 			this.shopPrice = getPrice();
 			this.shopType = getType();
 			for (int i = 0; i < lines * 9; i++) inventory.setItem(i,empty);
 			ItemStack item = getSellItem();
-			if (shopType != null && shopType.isIndependent()) {
+			if (shopType != null /*&& shopType.isIndependent()*/) {
 				Object name = null;
 				if (item.getItemMeta().hasDisplayName()) name = ReflectionUtils.getNameItem(item);
 				else name = ReflectionUtils.getItemTranslateable(item);
-				name = ReflectionUtils.buildIChatBaseComponentStringExtra(name,ReflectionUtils.buildIChatBaseComponentString(" (" + amount + ")",false,"white"));
+				/*name = ReflectionUtils.buildIChatBaseComponentStringExtra(name,ReflectionUtils.buildIChatBaseComponentString(" (" +
+						(shopType == ShopType.ADMINSHOP ? "∞" : getAmount(shopType)) + ")",false,"white"));*/
 				item = ReflectionUtils.setNameItem(item,name);
 			}
 			inventory.setItem(slotItem,item);
@@ -625,7 +630,7 @@ public class ItemFrameShop extends Listener {
 			inventory.setItem(slotType,item);
 			ItemStack border = new ItemStack(Material.GRAY_STAINED_GLASS_PANE);
 			ItemMeta meta = border.getItemMeta();
-			meta.setDisplayName(Utils.chatColors("&f" + (shopType == ShopType.ADMINSHOP ? "∞" : getAmount(shopType))));
+			meta.setDisplayName(Utils.chatColors("&f" + getAmountStr(shopType,getAmount(shopType))));
 			border.setItemMeta(meta);
 			for (int i : Arrays.asList(-10,-9,-8,-1,1,8,9,10)) if (slotItem + i >= 0 && slotItem + i < lines * 9) inventory.setItem(slotItem + i,border);
 		}
@@ -727,14 +732,14 @@ public class ItemFrameShop extends Listener {
 			inventory.setItem(slotOption5,optionItem(5));
 			ItemStack border = new ItemStack(Material.GRAY_STAINED_GLASS_PANE);
 			ItemMeta meta = border.getItemMeta();
-			meta.setDisplayName(Utils.chatColors("&f" + (getType() == ShopType.ADMINSHOP ? "∞" : getAmount())));
+			meta.setDisplayName(Utils.chatColors("&f" + getAmountStr()));
 			border.setItemMeta(meta);
 			for (int i : Arrays.asList(-10,-9,-8,-1,1,8,9,10)) if (slotItem + i >= 0 && slotItem + i < lines * 9) inventory.setItem(slotItem + i,border);
 		}
 		
 		private ItemStack optionItem(int i) {
 			int amount = optionAmount(i);
-			if (amount > getAmount()) return empty;
+			if (type != ShopType.ADMINSHOP && amount > getAmount()) return empty.clone();
 			ItemStack item = new ItemStack(Material.EMERALD);
 			ItemMeta meta = item.getItemMeta();
 			meta.setDisplayName(Utils.chatColors("&f") + Main.EconomyManager.currency(amount * getPrice()));
@@ -750,7 +755,7 @@ public class ItemFrameShop extends Listener {
 			else if (i == 3) amount = stack == 1 ? 3 : stack / 4;
 			else if (i == 4) amount = stack == 1 ? 4 : stack / 2;
 			else if (i == 5) amount = stack == 1 ? 5 : stack;
-			if (amount > getAmount()) return 0;
+			if (type != ShopType.ADMINSHOP && amount > getAmount()) return 0;
 			return amount;
 		}
 	}

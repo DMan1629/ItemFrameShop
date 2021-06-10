@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>DMan16</groupId>
 	<artifactId>ItemFrameShop</artifactId>
-	<version>1.0</version>
+	<version>0.1</version>
 	<description>ItemFrame Shop</description>
 	<packaging>jar</packaging>
 	<properties>

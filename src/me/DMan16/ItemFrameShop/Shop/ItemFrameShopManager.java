@@ -1,22 +1,13 @@
 package me.DMan16.ItemFrameShop.Shop;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
-import java.nio.file.Files;
-import java.nio.file.LinkOption;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.attribute.FileAttribute;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map.Entry;
-import java.util.Objects;
-import java.util.UUID;
-
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
+import me.DMan16.ItemFrameShop.Main;
+import me.DMan16.ItemFrameShop.Utils.PacketUtils;
+import me.DMan16.ItemFrameShop.Utils.ReflectionUtils;
+import me.DMan16.ItemFrameShop.Utils.Utils;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -29,23 +20,23 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonParser;
-
-import me.DMan16.ItemFrameShop.Main;
-import me.DMan16.ItemFrameShop.Utils.PacketUtils;
-import me.DMan16.ItemFrameShop.Utils.ReflectionUtils;
-import me.DMan16.ItemFrameShop.Utils.Utils;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.LinkOption;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.attribute.FileAttribute;
+import java.util.*;
+import java.util.Map.Entry;
 
 public class ItemFrameShopManager {
-	private double yNameDisplay = 0.5;
-	private double yPriceDisplay = 0.2;
-	private double yFaceDown = -0.5;
+	private final double yNameDisplay = 0.5;
+	private final double yPriceDisplay = 0.2;
+	private final double yFaceDown = -0.5;
 	
-	private HashMap<String,List<ItemFrameShop>> ItemFrameShops = new HashMap<String,List<ItemFrameShop>>();
-	private List<ItemFrame> ItemFrameShopsFrames = new ArrayList<ItemFrame>();
+	private final HashMap<String,List<ItemFrameShop>> ItemFrameShops = new HashMap<String,List<ItemFrameShop>>();
+	private final List<ItemFrame> ItemFrameShopsFrames = new ArrayList<ItemFrame>();
 	private final String pluginDir = "plugins/" + Main.pluginName;
 	private final Path dir = Paths.get(pluginDir);
 	
@@ -65,7 +56,7 @@ public class ItemFrameShopManager {
 		List<File> remove = new ArrayList<File>();
 		JSONParser jsonParser = new JSONParser();
 		for (final File file : path.listFiles()) {
-			try (InputStreamReader reader = new InputStreamReader(new FileInputStream(pluginDir + "/" + path.getName() + "/" + file.getName()),"UTF-8")) {
+			try (InputStreamReader reader = new InputStreamReader(new FileInputStream(pluginDir + "/" + path.getName() + "/" + file.getName()),StandardCharsets.UTF_8)) {
 				Object obj = jsonParser.parse(reader);
 				JSONArray arr = (JSONArray) obj;
 				int count = 0;
@@ -134,7 +125,7 @@ public class ItemFrameShopManager {
 		if (!ItemFrameShops.containsKey(worldName)) return;
 		Path path = dir.resolve(worldName);
 		try {
-			if (!Files.exists(path, new LinkOption[0])) Files.createDirectories(path, new FileAttribute[0]);
+			if (!Files.exists(path)) Files.createDirectories(path);
 			Gson gson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
 			JsonParser jp = new JsonParser();
 			List<ItemFrameShop> remove = new ArrayList<ItemFrameShop>();
@@ -165,7 +156,7 @@ public class ItemFrameShopManager {
 				Path playerPath = path.resolve(playerShops.getKey() + ".json");
 				Files.deleteIfExists(playerPath);
 				if (!playerShops.getValue().isEmpty()) {
-					Files.createFile(playerPath, new FileAttribute[0]);
+					Files.createFile(playerPath);
 					JsonElement je = jp.parse(playerShops.getValue().toJSONString());
 					String prettyJsonString = gson.toJson(je);
 					PrintWriter pw = new PrintWriter(pluginDir + "/" + worldName + "/" + playerShops.getKey() + ".json");
@@ -200,7 +191,7 @@ public class ItemFrameShopManager {
 				str += "&f, ";
 				str += "open: &d" + shop.isOpen();
 				str += "&f, ";
-				str += "amount: &9" + shop.getAmount();
+				str += "amount: &9" + shop.getAmountStr();
 				
 				worldStr.add(str);
 			}
