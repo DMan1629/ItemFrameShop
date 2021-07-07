@@ -212,7 +212,7 @@ public class ItemFrameShopManager {
 		Object nameStr;
 		if (shop.getSellItem().getItemMeta().hasDisplayName()) nameStr = ReflectionUtils.getNameItem(shop.getSellItem());
 		else nameStr = ReflectionUtils.getItemTranslatable(shop.getSellItem());
-		Object priceStr = ReflectionUtils.ChatColorsToIChatBaseComponent(Main.EconomyManager.currency(shop.getPrice()));
+		Object priceStr = ReflectionUtils.ChatColorsToIChatBaseComponent(Main.getEconomyManager().currency(shop.getPrice()));
 		int nameID = shop.getNameDisplay();
 		int priceID = shop.getPriceDisplay();
 		Location loc = natLocation(shop.getFrame().getLocation());
@@ -236,7 +236,7 @@ public class ItemFrameShopManager {
 			Object nameStr;
 			if (shop.getSellItem().getItemMeta().hasDisplayName()) nameStr = ReflectionUtils.getNameItem(shop.getSellItem());
 			else nameStr = ReflectionUtils.getItemTranslatable(shop.getSellItem());
-			Object priceStr = ReflectionUtils.ChatColorsToIChatBaseComponent(Main.EconomyManager.currency(shop.getPrice()));
+			Object priceStr = ReflectionUtils.ChatColorsToIChatBaseComponent(Main.getEconomyManager().currency(shop.getPrice()));
 			int nameID = shop.getNameDisplay();
 			int priceID = shop.getPriceDisplay();
 			Location loc = natLocation(shop.getFrame().getLocation());

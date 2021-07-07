@@ -31,7 +31,7 @@ public class ShopListener extends Listener {
 		Player player = event.getPlayer();
 		ItemStack item = player.getInventory().getItemInMainHand();
 		if (frame == null || player == null || !player.isSneaking() || Utils.isNull(item) || !Utils.isNull(frame.getItem()) ||
-				Main.ItemFrameShopManager.isShop(frame)) return;
+				Main.getItemFrameShopManager().isShop(frame)) return;
 		event.setCancelled(true);
 		boolean createInventory = Permissions.createInventoryShopPermission(player);
 		boolean createFrame = Permissions.createFrameShopPermission(player);
@@ -44,7 +44,7 @@ public class ShopListener extends Listener {
 	public void onPlayerJoinEvent(PlayerJoinEvent event) {
 		new BukkitRunnable() {
 			public void run() {
-				Main.ItemFrameShopManager.spawnShopArmorStands(event.getPlayer());
+				Main.getItemFrameShopManager().spawnShopArmorStands(event.getPlayer());
 			}
 		}.runTask(Main.getInstance());
 	}
@@ -53,23 +53,23 @@ public class ShopListener extends Listener {
 	public void onPlayerTeleportEvent(PlayerTeleportEvent event) {
 		new BukkitRunnable() {
 			public void run() {
-				Main.ItemFrameShopManager.spawnShopArmorStands(event.getPlayer());
+				Main.getItemFrameShopManager().spawnShopArmorStands(event.getPlayer());
 			}
 		}.runTask(Main.getInstance());
 	}
 	
 	@EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
 	public void onSaveEvent(WorldSaveEvent event) {
-		Main.ItemFrameShopManager.write(event.getWorld());
+		Main.getItemFrameShopManager().write(event.getWorld());
 	}
 	
 	@EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
 	public void onLoadEvent(WorldLoadEvent event) {
-		Main.ItemFrameShopManager.loadInfoFromPath(event.getWorld());
+		Main.getItemFrameShopManager().loadInfoFromPath(event.getWorld());
 	}
 	
 	@EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
 	public void onUnloadEvent(WorldUnloadEvent event) {
-		Main.ItemFrameShopManager.unload(event.getWorld());
+		Main.getItemFrameShopManager().unload(event.getWorld());
 	}
 }

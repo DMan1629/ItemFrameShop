@@ -77,20 +77,20 @@ public class ItemFrameShop extends Listener {
 	
 	public ItemFrameShop(ItemFrame frame, UUID ownerID, ItemStack sellItem) {
 		this.frame = Objects.requireNonNull(frame);
-		ItemFrameShop shop = Main.ItemFrameShopManager.getShop(frame);
+		ItemFrameShop shop = Main.getItemFrameShopManager().getShop(frame);
 		if (shop != null) setInfo(shop.ownerID,shop.type,shop.sellItem,shop.nameDisplay,shop.priceDisplay,shop.price,shop.amount);
 		else setInfo(ownerID,ShopType.INVENTORY,sellItem,ReflectionUtils.getNextEntityID(),ReflectionUtils.getNextEntityID(),-1,0);
 	}
 	
 	public ItemFrameShop(ItemFrame frame, UUID ownerID, ShopType type, ItemStack sellItem, double price, int amount, boolean fromFile) {
 		this.frame = Objects.requireNonNull(frame);
-		ItemFrameShop shop = fromFile ? null : Main.ItemFrameShopManager.getShop(frame);
+		ItemFrameShop shop = fromFile ? null : Main.getItemFrameShopManager().getShop(frame);
 		if (shop != null) setInfo(shop.ownerID,shop.type,shop.sellItem,shop.nameDisplay,shop.priceDisplay,shop.price,shop.amount);
 		else setInfo(ownerID,type,sellItem,ReflectionUtils.getNextEntityID(),ReflectionUtils.getNextEntityID(),price,amount);
 		if (isShop()) {
 			this.register();
 			this.frame.setItem(ReflectionUtils.setNameItem(getSellItem(),null));
-			if (!fromFile) Main.ItemFrameShopManager.newShop(this);
+			if (!fromFile) Main.getItemFrameShopManager().newShop(this);
 		}
 	}
 	
@@ -105,7 +105,7 @@ public class ItemFrameShop extends Listener {
 		setInfo(event.getOwner().getUniqueId(),event.getType(),sellItem,ReflectionUtils.getNextEntityID(),ReflectionUtils.getNextEntityID(),event.getPrice(),0);
 		if (!this.isRegistered) this.register();
 		this.frame.setItem(ReflectionUtils.setNameItem(getSellItem(),null));
-		Main.ItemFrameShopManager.newShop(this);
+		Main.getItemFrameShopManager().newShop(this);
 		return true;
 	}
 	
@@ -140,7 +140,7 @@ public class ItemFrameShop extends Listener {
 		Bukkit.getServer().getPluginManager().callEvent(event);
 		if (event.isCancelled()) return false;
 		this.open = false;
-		Main.ItemFrameShopManager.despawnShopArmorStands(this);
+		Main.getItemFrameShopManager().despawnShopArmorStands(this);
 		this.ownerID = null;
 		if (this.type.isIndependent() && this.type != ShopType.ADMINSHOP) for (int i = 0; i < this.amount; i++) {
 			if (player == null) Utils.dropItem(this.frame.getLocation(),getSellItem());
@@ -154,7 +154,7 @@ public class ItemFrameShop extends Listener {
 		this.nameDisplay = 0;
 		this.priceDisplay = 0;
 		this.unregister();
-		Main.ItemFrameShopManager.remove(this,player);
+		Main.getItemFrameShopManager().remove(this,player);
 		return true;
 	}
 	
@@ -227,11 +227,11 @@ public class ItemFrameShop extends Listener {
 		if (isShop() && (this.type == ShopType.ADMINSHOP || getAmount() > 0) && getPrice() != 0 && getPrice() > minimum() && getPrice() <= maximum()) {	// open
 			if (isOpen()) return;
 			this.open = true;
-			Main.ItemFrameShopManager.spawnShopArmorStands(this);
+			Main.getItemFrameShopManager().spawnShopArmorStands(this);
 		} else {
 			if (!isOpen()) return;
 			this.open = false;
-			Main.ItemFrameShopManager.despawnShopArmorStands(this);
+			Main.getItemFrameShopManager().despawnShopArmorStands(this);
 		}
 	}
 	
@@ -345,12 +345,12 @@ public class ItemFrameShop extends Listener {
 	
 	private boolean buy(Player player, int amount) {
 		if (isOpen() && testRemove(amount)) {
-			EconomyResponse response = Main.EconomyManager.playerPay(player,amount * this.price);
+			EconomyResponse response = Main.getEconomyManager().playerPay(player,amount * this.price);
 			if (response.type == ResponseType.SUCCESS) {
 				for (int i = 0 ; i < amount; i++) Utils.givePlayer(player,getSellItem(),false);
 				removeAmount(amount);
 				Utils.chatColors(player,"&fPurchased &6" + amount + " &fitems!"); // From config
-				if (getOwnerID() != null && this.getType() != ShopType.ADMINSHOP) Main.EconomyManager.playerAdd(Bukkit.getOfflinePlayer(getOwnerID()),amount * this.price);
+				if (getOwnerID() != null && this.getType() != ShopType.ADMINSHOP) Main.getEconomyManager().playerAdd(Bukkit.getOfflinePlayer(getOwnerID()),amount * this.price);
 				return true;
 			} else player.sendMessage(response.errorMessage);
 		} else Utils.chatColors(player,"&cInsufficient amount of items in shop!"); // From config
@@ -607,7 +607,7 @@ public class ItemFrameShop extends Listener {
 			ItemStack item = new ItemStack(Material.EMERALD);
 			ItemMeta meta = item.getItemMeta();
 			meta.setDisplayName(Utils.chatColors("&aPrice"));
-			meta.setLore(Arrays.asList("",shopPrice >= 0 ? Utils.chatColors("&f") + Main.EconomyManager.currency(shopPrice) : Utils.chatColors("&cNot set"),"",
+			meta.setLore(Arrays.asList("",shopPrice >= 0 ? Utils.chatColors("&f") + Main.getEconomyManager().currency(shopPrice) : Utils.chatColors("&cNot set"),"",
 					Utils.chatColors("&8>&7> &eClick to change &7<&8<"))); // From config
 			item.setItemMeta(meta);
 			inventory.setItem(slotPrice,item);
@@ -753,7 +753,7 @@ public class ItemFrameShop extends Listener {
 			if (type != ShopType.ADMINSHOP && amount > getAmount()) return empty.clone();
 			ItemStack item = new ItemStack(Material.EMERALD);
 			ItemMeta meta = item.getItemMeta();
-			meta.setDisplayName(Utils.chatColors("&f") + Main.EconomyManager.currency(amount * getPrice()));
+			meta.setDisplayName(Utils.chatColors("&f") + Main.getEconomyManager().currency(amount * getPrice()));
 			item.setItemMeta(meta);
 			return Utils.asQuantity(item,amount,true);
 		}

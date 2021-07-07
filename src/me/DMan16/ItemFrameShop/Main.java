@@ -18,8 +18,8 @@ public class Main extends JavaPlugin {
 	private static Main instance;
 	public static final String pluginName = "ItemFrameShop";
 	public static final String pluginNameColors = "&6&lItem&b&lFrame&a&lShop";
-	public static EconomyManager EconomyManager;
-	public static ItemFrameShopManager ItemFrameShopManager;
+	private static EconomyManager EconomyManager;
+	private static ItemFrameShopManager ItemFrameShopManager;
 	private int count = 0;
 
 	public void onEnable() {
@@ -67,6 +67,14 @@ public class Main extends JavaPlugin {
 	
 	public static FileConfiguration config() {
 		return instance.getConfig();
+	}
+	
+	public static EconomyManager getEconomyManager() {
+		return EconomyManager;
+	}
+	
+	public static ItemFrameShopManager getItemFrameShopManager() {
+		return ItemFrameShopManager;
 	}
 
 	public void onDisable() {
