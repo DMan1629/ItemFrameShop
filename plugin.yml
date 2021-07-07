@@ -1,6 +1,6 @@
 name: ItemFrameShop
 main: me.DMan16.ItemFrameShop.Main
-version: 0.1
+version: 1.0
 depend: [Vault]
 description: ItemFrame Shop
 author: DMan16

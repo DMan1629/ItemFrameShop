@@ -38,6 +38,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 
 import javax.annotation.Nullable;
 import java.util.Arrays;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -349,6 +350,7 @@ public class ItemFrameShop extends Listener {
 				for (int i = 0 ; i < amount; i++) Utils.givePlayer(player,getSellItem(),false);
 				removeAmount(amount);
 				Utils.chatColors(player,"&fPurchased &6" + amount + " &fitems!"); // From config
+				if (getOwnerID() != null && this.getType() != ShopType.ADMINSHOP) Main.EconomyManager.playerAdd(Bukkit.getOfflinePlayer(getOwnerID()),amount * this.price);
 				return true;
 			} else player.sendMessage(response.errorMessage);
 		} else Utils.chatColors(player,"&cInsufficient amount of items in shop!"); // From config
@@ -657,7 +659,16 @@ public class ItemFrameShop extends Listener {
 					String read = event.getMessage().trim();
 					if (read.equalsIgnoreCase("cancel"));
 					else {
-						double readPrice = Double.parseDouble(read);
+						double suffixMult = 1;
+						if (read.toLowerCase().endsWith("k") || read.toLowerCase().endsWith("m") || read.toLowerCase().endsWith("b")) {
+							String suffix = read.substring(read.length() - 1);
+							read = read.substring(0,read.length() - 1).toLowerCase();
+							if (suffix.equals("k")) suffixMult = 1e3;
+							else if (suffix.equals("m")) suffixMult = 1e6;
+							else suffixMult = 1e9;
+						}
+						double readPrice = Double.parseDouble(read) * suffixMult;
+						if (Double.isInfinite(readPrice)) throw new Exception();
 						if (readPrice != 0 && (readPrice <= minimum() || readPrice > maximum())) throw new Exception();
 						shopPrice = fixPrice(readPrice);
 						setPriceItem();
