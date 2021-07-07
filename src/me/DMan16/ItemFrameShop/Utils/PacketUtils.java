@@ -1,5 +1,9 @@
 package me.DMan16.ItemFrameShop.Utils;
 
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
+import org.bukkit.entity.Player;
+
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -8,33 +12,27 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
-import org.bukkit.entity.Player;
-
 public class PacketUtils {
-	private static final String version = Bukkit.getServer().getClass().getPackage().getName().split("\\.")[3];
 	
 	public static void sendPacket(Object packet, Player player) {
 		if (packet == null) return;
 		try {
-			Method sendPacket = Class.forName("net.minecraft.server." + version + ".PlayerConnection").getMethod("sendPacket",
-					Class.forName("net.minecraft.server." + version + ".Packet"));
-			Field playerConnection = Class.forName("net.minecraft.server." + version + ".EntityPlayer").getDeclaredField("playerConnection");
-			Method getHandle = Class.forName("org.bukkit.craftbukkit." + version + ".entity.CraftPlayer").getMethod("getHandle");
+			Method sendPacket = ReflectionUtils.getClassNMS("PlayerConnection","server.network").getMethod("sendPacket",
+					ReflectionUtils.getClassNMS("Packet","network.protocol"));
+			Field playerConnection = ReflectionUtils.getClassNMS("EntityPlayer","server.level").getDeclaredField(Utils.getVersionInt() < 17 ? "playerConnection" : "b");
+			Method getHandle = ReflectionUtils.getClassCraftBukkit("entity.CraftPlayer").getMethod("getHandle");
 			Object playerHandle = getHandle.invoke(player);
-			Object playerPlayerConnection = playerConnection.get(playerHandle);
-			Objects.requireNonNull(playerHandle);
-			Objects.requireNonNull(playerPlayerConnection);
-			Objects.requireNonNull(sendPacket);
-			sendPacket.invoke(playerPlayerConnection,packet);
-		} catch (Exception e) {}
+			Object playerPlayerConnection = playerConnection.get(Objects.requireNonNull(playerHandle));
+			Objects.requireNonNull(sendPacket).invoke(Objects.requireNonNull(playerPlayerConnection),packet);
+		} catch (Exception e) {e.printStackTrace();}
 	}
 	
 	public static Object packetCreateArmorStand(int ID, Location loc, Object entityDataWatcher) {
 		try {
-			Class<?> PacketPlayOutSpawnEntityLiving = Class.forName("net.minecraft.server." + version + ".PacketPlayOutSpawnEntityLiving");
-			Constructor<?> newPacketPlayOutSpawnEntityLiving = PacketPlayOutSpawnEntityLiving.getConstructor();
+			Class<?> PacketPlayOutSpawnEntityLiving = ReflectionUtils.getClassNMS("PacketPlayOutSpawnEntityLiving","network.protocol.game");
+			Constructor<?> newPacketPlayOutSpawnEntityLiving = PacketPlayOutSpawnEntityLiving.getConstructor(ReflectionUtils.getClassNMS("EntityLiving",
+					"world.entity"));
+			
 			Field entityID = PacketPlayOutSpawnEntityLiving.getDeclaredField("a");
 			Field entityUUID = PacketPlayOutSpawnEntityLiving.getDeclaredField("b");
 			Field entityType = PacketPlayOutSpawnEntityLiving.getDeclaredField("c");
@@ -52,63 +50,72 @@ public class PacketUtils {
 			entityYaw.setAccessible(true);
 			entityPitch.setAccessible(true);
 			
-			Object packet = newPacketPlayOutSpawnEntityLiving.newInstance();
-			entityID.set(packet,Integer.valueOf(ID));
-			entityType.set(packet,Integer.valueOf(1));
-			entityYaw.set(packet,Byte.valueOf((byte) loc.getYaw()));
-			entityPitch.set(packet,Byte.valueOf((byte) loc.getPitch()));
+			Object packet = newPacketPlayOutSpawnEntityLiving.newInstance(ReflectionUtils.getClassCraftBukkit("entity.CraftPlayer").getMethod("getHandle").
+					invoke(Bukkit.getOnlinePlayers().iterator().next()));
+			entityID.set(packet,ID);
+			entityType.set(packet,1);
+			entityYaw.set(packet,(byte) loc.getYaw());
+			entityPitch.set(packet,(byte) loc.getPitch());
 			entityUUID.set(packet,UUID.randomUUID());
-			entityX.set(packet,Double.valueOf(loc.getX()));
-			entityY.set(packet,Double.valueOf(loc.getY()));
-			entityZ.set(packet,Double.valueOf(loc.getZ()));
+			entityX.set(packet,loc.getX());
+			entityY.set(packet,loc.getY());
+			entityZ.set(packet,loc.getZ());
 			if (Utils.getVersionInt() <= 14) {
 				Field DataWatcher = PacketPlayOutSpawnEntityLiving.getDeclaredField("m");
 				DataWatcher.setAccessible(true);
 				DataWatcher.set(packet,entityDataWatcher);
 			}
 			return packet;
-		} catch (Exception e) {}
+		} catch (Exception e) {e.printStackTrace();}
 		return null;
 	}
 	
 	public static Object packetDataWatcherArmorStand(Object name) {
 		try {
-			Class<?> DataWatcher = Class.forName("net.minecraft.server." + ReflectionUtils.version + ".DataWatcher");
-			Constructor<?> DataWatcherConstructor = DataWatcher.getConstructor(Class.forName("net.minecraft.server." + ReflectionUtils.version + ".Entity"));
-			Class<?> DataWatcherObject = Class.forName("net.minecraft.server." + ReflectionUtils.version + ".DataWatcherObject");
+			Class<?> DataWatcher = ReflectionUtils.getClassNMS("DataWatcher","network.syncher");
+			Constructor<?> DataWatcherConstructor = DataWatcher.getConstructor(ReflectionUtils.getClassNMS("Entity","world.entity"));
+			Class<?> DataWatcherObject = ReflectionUtils.getClassNMS("DataWatcherObject","network.syncher");
 			Constructor<?> DataWatcherObjectConstructor = DataWatcherObject.getConstructors()[0];
 			Method register = DataWatcher.getMethod("register",DataWatcherObject,Object.class);
-			Class<?> DataWatcherRegistry = Class.forName("net.minecraft.server." + ReflectionUtils.version + ".DataWatcherRegistry");
-
+			Class<?> DataWatcherRegistry = ReflectionUtils.getClassNMS("DataWatcherRegistry","network.syncher");
 			Map<String,Object> fields = ReflectionUtils.getStaticFields(DataWatcherRegistry);
 			Object nmsWatcher = DataWatcherConstructor.newInstance((Object) null);
 			register.invoke(nmsWatcher,DataWatcherObjectConstructor.newInstance(0,fields.get("a")),(byte) 32);
-			register.invoke(nmsWatcher,DataWatcherObjectConstructor.newInstance(2,fields.get("f")),
-					Optional.ofNullable(ReflectionUtils.StringToIChatBaseComponent(name)));
+			register.invoke(nmsWatcher,DataWatcherObjectConstructor.newInstance(2,fields.get("f")),Optional.ofNullable(ReflectionUtils.StringToIChatBaseComponent(name)));
 			register.invoke(nmsWatcher,DataWatcherObjectConstructor.newInstance(3,fields.get("i")),true);
-			int flagPosition = Utils.getVersionInt() >= 15 ? 14 : (Utils.getVersionInt() >= 14 ? 13 : 11);
+			int version = Utils.getVersionInt();
+			int flagPosition;
+			if (version >= 17) flagPosition = 15;
+			else if (version >= 15) flagPosition = 14;
+			else if (version >= 14) flagPosition = 13;
+			else flagPosition = 11;
 			register.invoke(nmsWatcher,DataWatcherObjectConstructor.newInstance(flagPosition,fields.get("a")),(byte) 16);
 			return nmsWatcher;
-		} catch (Exception e) {}
+		} catch (Exception e) {e.printStackTrace();}
 		return null;
 	}
 	
 	public static Object packetUpdateArmorStand(int ID, Object entityDataWatcher) {
 		try {
-			Class<?> PacketPlayOutEntityMetadata = Class.forName("net.minecraft.server." + ReflectionUtils.version + ".PacketPlayOutEntityMetadata");
-			Class<?> DataWatcher = Class.forName("net.minecraft.server." + ReflectionUtils.version + ".DataWatcher");
+			Class<?> PacketPlayOutEntityMetadata = ReflectionUtils.getClassNMS("PacketPlayOutEntityMetadata","network.protocol.game");
+			Class<?> DataWatcher = ReflectionUtils.getClassNMS("DataWatcher","network.syncher");
 			Constructor<?> PacketPlayOutEntityMetadataConstructor = PacketPlayOutEntityMetadata.getConstructor(Integer.TYPE,DataWatcher,Boolean.TYPE);
 			return PacketPlayOutEntityMetadataConstructor.newInstance(ID,entityDataWatcher,true);
-		} catch (Exception e) {}
+		} catch (Exception e) {e.printStackTrace();}
 		return null;
 	}
 	
-	public static Object packetDestroyEntity(int ... IDs) {
+	public static Object packetDestroyEntity(int ID) {
 		try {
-			Class<?> PacketPlayOutEntityDestroy = Class.forName("net.minecraft.server." + ReflectionUtils.version + ".PacketPlayOutEntityDestroy");
-			Constructor<?> PacketPlayOutEntityDestroyConstructor = PacketPlayOutEntityDestroy.getConstructor(new Class[]{int[].class});
-			return PacketPlayOutEntityDestroyConstructor.newInstance(IDs);
-		} catch (Exception e) {}
+			Class<?> PacketPlayOutEntityDestroy = ReflectionUtils.getClassNMS("PacketPlayOutEntityDestroy","network.protocol.game");
+			Constructor<?> PacketPlayOutEntityDestroyConstructor;
+			try {
+				PacketPlayOutEntityDestroyConstructor = PacketPlayOutEntityDestroy.getConstructor(int[].class);
+			} catch (Exception e) {
+				PacketPlayOutEntityDestroyConstructor = PacketPlayOutEntityDestroy.getConstructor(int.class);
+			}
+			return PacketPlayOutEntityDestroyConstructor.newInstance(ID);
+		} catch (Exception e) {e.printStackTrace();}
 		return null;
 	}
 }

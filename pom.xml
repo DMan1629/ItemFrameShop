@@ -32,7 +32,7 @@
 				<configuration>
 					<source>${java.version}</source>
 					<target>${java.version}</target>
-					<executable>C:\Program Files\Java\jdk-16.0.1\bin\javac.exe</executable>
+					<executable>C:\Program Files\Java\jdk-11.0.9\bin\javac.exe</executable>
 					<compilerArgs>
 						<arg>-Xlint:deprecation</arg>
 					</compilerArgs>
@@ -66,7 +66,7 @@
 		<dependency>
 			<groupId>org.spigotmc</groupId>
 			<artifactId>spigot-api</artifactId>
-			<version>1.16.5-R0.1-SNAPSHOT</version>
+			<version>1.17-R0.1-SNAPSHOT</version>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>

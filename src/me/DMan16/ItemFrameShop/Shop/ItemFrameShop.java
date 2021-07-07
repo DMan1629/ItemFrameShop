@@ -546,7 +546,7 @@ public class ItemFrameShop extends Listener {
 			if (shopType != null /*&& shopType.isIndependent()*/) {
 				Object name = null;
 				if (item.getItemMeta().hasDisplayName()) name = ReflectionUtils.getNameItem(item);
-				else name = ReflectionUtils.getItemTranslateable(item);
+				else name = ReflectionUtils.getItemTranslatable(item);
 				/*name = ReflectionUtils.buildIChatBaseComponentStringExtra(name,ReflectionUtils.buildIChatBaseComponentString(" (" +
 						(shopType == ShopType.ADMINSHOP ? "∞" : getAmount(shopType)) + ")",false,"white"));*/
 				item = ReflectionUtils.setNameItem(item,name);

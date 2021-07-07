@@ -23,10 +23,8 @@ import org.json.simple.parser.JSONParser;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.attribute.FileAttribute;
 import java.util.*;
 import java.util.Map.Entry;
 
@@ -41,7 +39,7 @@ public class ItemFrameShopManager {
 	private final Path dir = Paths.get(pluginDir);
 	
 	public ItemFrameShopManager() throws IOException {
-		if (!Files.exists(dir, new LinkOption[0])) Files.createDirectories(dir, new FileAttribute[0]);
+		if (!Files.exists(dir)) Files.createDirectories(dir);
 		else for (World world : Bukkit.getWorlds()) loadInfoFromPath(world);
 	}
 	
@@ -213,7 +211,7 @@ public class ItemFrameShopManager {
 		if (shop == null || !shop.isShop() || !shop.isOpen()) return;
 		Object nameStr;
 		if (shop.getSellItem().getItemMeta().hasDisplayName()) nameStr = ReflectionUtils.getNameItem(shop.getSellItem());
-		else nameStr = ReflectionUtils.getItemTranslateable(shop.getSellItem());
+		else nameStr = ReflectionUtils.getItemTranslatable(shop.getSellItem());
 		Object priceStr = ReflectionUtils.ChatColorsToIChatBaseComponent(Main.EconomyManager.currency(shop.getPrice()));
 		int nameID = shop.getNameDisplay();
 		int priceID = shop.getPriceDisplay();
@@ -237,7 +235,7 @@ public class ItemFrameShopManager {
 			if (!shop.isOpen()) continue;
 			Object nameStr;
 			if (shop.getSellItem().getItemMeta().hasDisplayName()) nameStr = ReflectionUtils.getNameItem(shop.getSellItem());
-			else nameStr = ReflectionUtils.getItemTranslateable(shop.getSellItem());
+			else nameStr = ReflectionUtils.getItemTranslatable(shop.getSellItem());
 			Object priceStr = ReflectionUtils.ChatColorsToIChatBaseComponent(Main.EconomyManager.currency(shop.getPrice()));
 			int nameID = shop.getNameDisplay();
 			int priceID = shop.getPriceDisplay();
@@ -253,7 +251,10 @@ public class ItemFrameShopManager {
 		if (shop == null || shop.isOpen()) return;
 		int nameID = shop.getNameDisplay();
 		int priceID = shop.getPriceDisplay();
-		for (Player player : shop.getFrame().getWorld().getPlayers()) PacketUtils.sendPacket(PacketUtils.packetDestroyEntity(nameID,priceID),player);
+		for (Player player : shop.getFrame().getWorld().getPlayers()) {
+			PacketUtils.sendPacket(PacketUtils.packetDestroyEntity(nameID),player);
+			PacketUtils.sendPacket(PacketUtils.packetDestroyEntity(priceID),player);
+		}
 	}
 	
 	private Location natLocation(Location loc) {

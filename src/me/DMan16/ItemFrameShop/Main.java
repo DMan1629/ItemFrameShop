@@ -43,7 +43,7 @@ public class Main extends JavaPlugin {
 		new BukkitRunnable() {
 			public void run() {
 				count++;
-				if (count > 2 * 60) {
+				if (count > 30) {
 					Utils.chatColorsLogPlugin("&cno supported Economy provider found!");
 					Bukkit.getPluginManager().disablePlugin(instance);
 					return;
