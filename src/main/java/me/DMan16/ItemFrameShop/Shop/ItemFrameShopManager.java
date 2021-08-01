@@ -51,7 +51,7 @@ public class ItemFrameShopManager {
 			break;
 		}
 		if (path == null) return;
-		List<File> remove = new ArrayList<File>();
+		List<File> remove = new ArrayList<>();
 		JSONParser jsonParser = new JSONParser();
 		for (final File file : path.listFiles()) {
 			try (InputStreamReader reader = new InputStreamReader(new FileInputStream(pluginDir + "/" + path.getName() + "/" + file.getName()),StandardCharsets.UTF_8)) {
@@ -92,7 +92,7 @@ public class ItemFrameShopManager {
 	public void unload(World world) {
 		write(world);
 		if (ItemFrameShops.containsKey(world.getName())) {
-			List<ItemFrameShop> shops = new ArrayList<ItemFrameShop>(ItemFrameShops.get(world.getName()));
+			List<ItemFrameShop> shops = new ArrayList<>(ItemFrameShops.get(world.getName()));
 			for (ItemFrameShop shop : shops) remove(shop,null);
 		}
 	}
@@ -102,7 +102,7 @@ public class ItemFrameShopManager {
 		ItemFrame frame = shop.getFrame();
 		if (isShop(frame)) return;
 		World world = frame.getWorld();
-		if (!ItemFrameShops.containsKey(world.getName())) ItemFrameShops.put(world.getName(), new ArrayList<ItemFrameShop>());
+		if (!ItemFrameShops.containsKey(world.getName())) ItemFrameShops.put(world.getName(), new ArrayList<>());
 		ItemFrameShops.get(world.getName()).add(shop);
 		ItemFrameShopsFrames.add(frame);
 	}
@@ -165,14 +165,14 @@ public class ItemFrameShopManager {
 			}
 			for (ItemFrameShop shop : remove) remove(shop,null);
 		} catch (Exception e) {
-			Utils.chatColorsLogPlugin("&cError saving shops in world &e" + world.getName() + "&c!");
+			Utils.chatColorsLogPlugin("&cError saving shops in world &e" + world.getName() + "&c!"); // From config
 		}
 		if (Bukkit.getWorlds().get(Bukkit.getWorlds().size() - 1).getName().equals(worldName))
-			Utils.chatColorsLogPlugin("&aAll shops have been saved!");
+			Utils.chatColorsLogPlugin("&aAll shops have been saved!"); // From config
 	}
 	
 	public String toString() {
-		List<String> worldStrs = new ArrayList<String>();
+		List<String> worldStrs = new ArrayList<>();
 		Bukkit.broadcastMessage("size: " + ItemFrameShops.entrySet().size());
 		for (Entry<String,List<ItemFrameShop>> shops : ItemFrameShops.entrySet()) {
 			List<String> worldStr = new ArrayList<String>();

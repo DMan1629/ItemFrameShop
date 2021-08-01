@@ -1,18 +1,11 @@
 package me.DMan16.ItemFrameShop.Utils;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.text.DecimalFormat;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import javax.annotation.Nullable;
-
+import me.DMan16.ItemFrameShop.Main;
+import net.md_5.bungee.api.ChatColor;
+import net.md_5.bungee.api.ChatMessageType;
+import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
-import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Item;
@@ -22,10 +15,14 @@ import org.bukkit.util.io.BukkitObjectInputStream;
 import org.bukkit.util.io.BukkitObjectOutputStream;
 import org.yaml.snakeyaml.external.biz.base64Coder.Base64Coder;
 
-import me.DMan16.ItemFrameShop.Main;
-import net.md_5.bungee.api.ChatColor;
-import net.md_5.bungee.api.ChatMessageType;
-import net.md_5.bungee.api.chat.TextComponent;
+import javax.annotation.Nullable;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.text.DecimalFormat;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class Utils {
 	
@@ -115,7 +112,7 @@ public class Utils {
 	
 	public static boolean isNull(@Nullable ItemStack item) {
 		if (item == null || item.getAmount() <= 0) return true;
-		if (getVersionInt() < 15) return item.getType() == Material.AIR;
+		if (getVersionInt() < 15) return item.getType().name().endsWith("AIR");
 		return item.getType().isAir();
 	}
 	

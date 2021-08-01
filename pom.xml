@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>DMan16</groupId>
 	<artifactId>ItemFrameShop</artifactId>
-	<version>0.1</version>
+	<version>1.0</version>
 	<description>ItemFrame Shop</description>
 	<packaging>jar</packaging>
 	<properties>
@@ -13,18 +13,6 @@
 	<build>
 		<finalName>${project.name}</finalName>
 		<defaultGoal>clean package</defaultGoal>
-		<sourceDirectory>src</sourceDirectory>
-		<resources>
-			<resource>
-				<targetPath>.</targetPath>
-				<filtering>true</filtering>
-				<directory>${basedir}</directory>
-				<includes>
-					<include>plugin.yml</include>
-					<include>config.yml</include>
-				</includes>
-			</resource>
-		</resources>
 		<plugins>
 			<plugin>
 				<artifactId>maven-compiler-plugin</artifactId>
@@ -32,7 +20,6 @@
 				<configuration>
 					<source>${java.version}</source>
 					<target>${java.version}</target>
-					<executable>C:\Program Files\Java\jdk-11.0.9\bin\javac.exe</executable>
 					<compilerArgs>
 						<arg>-Xlint:deprecation</arg>
 					</compilerArgs>
@@ -93,11 +80,11 @@
 			<version>2.0.27-SNAPSHOT</version>
 			<scope>provided</scope>
 		</dependency>
-		<dependency>
-			<groupId>com.googlecode.json-simple</groupId>
-			<artifactId>json-simple</artifactId>
-			<version>1.1.1</version>
-			<scope>compile</scope>
-		</dependency>
-	</dependencies>
+        <dependency>
+            <groupId>com.googlecode.json-simple</groupId>
+            <artifactId>json-simple</artifactId>
+            <version>1.1.1</version>
+            <scope>compile</scope>
+        </dependency>
+    </dependencies>
 </project>

@@ -14,29 +14,31 @@ import java.util.stream.Collectors;
 
 public class ReflectionUtils {
 	public static final String version = Bukkit.getServer().getClass().getPackage().getName().split("\\.")[3];
+	public static final Class<?> ClassCraftItemStack = getClassCraftBukkit("inventory.CraftItemStack");
+	public static final Class<?> ClassItemStackNMS = getClassNMS("ItemStack","world.item");
+	public static final Class<?> ClassCraftMetaItem = getClassCraftBukkit("inventory.CraftMetaItem");
+	
 	
 	private static String removeUnnecessaryDots(String str) {
 		return Arrays.stream(str.split("\\.")).filter(s -> !s.isEmpty()).collect(Collectors.joining("."));
 	}
 	
 	public static Class<?> getClassNMS(String name, String subPackageNameNewNMS) {
-		Class clazz = null;
 		try {
-			clazz = Class.forName(removeUnnecessaryDots("net.minecraft.server." + version + "." + name));
+			return Class.forName(removeUnnecessaryDots("net.minecraft.server." + version + "." + name));
 		} catch (Exception e) {
 			try {
-				clazz = Class.forName(removeUnnecessaryDots("net.minecraft." + subPackageNameNewNMS + "." + name));
+				return Class.forName(removeUnnecessaryDots("net.minecraft." + subPackageNameNewNMS + "." + name));
 			} catch (Exception e2) {}
 		}
-		return clazz;
+		return null;
 	}
 	
 	public static Class<?> getClassCraftBukkit(String name) {
-		Class clazz = null;
 		try {
-			clazz = Class.forName(removeUnnecessaryDots("org.bukkit.craftbukkit." + version + "." + name));
+			return Class.forName(removeUnnecessaryDots("org.bukkit.craftbukkit." + version + "." + name));
 		} catch (Exception e) {}
-		return clazz;
+		return null;
 	}
 	
 	public static String buildIChatBaseComponentString(String text, boolean translate, boolean italic, @Nullable String color, boolean bold, Object ... with) {
@@ -47,7 +49,7 @@ public class ReflectionUtils {
 		str += ",\"italic\":" + italic;
 		if (color != null && !color.isEmpty()) str += ",\"color\":\"" + color + "\"";
 		if (translate && with.length > 0) {
-			List<String> extras = new ArrayList<String>();
+			List<String> extras = new ArrayList<>();
 			for (Object obj : with) {
 				String extra = IChatBaseComponentToString(obj);
 				if (extra != null) extras.add(extra);
@@ -69,7 +71,7 @@ public class ReflectionUtils {
 	public static Object buildIChatBaseComponentStringExtra(List<Object> comps) {
 		if (comps == null || comps.isEmpty()) return null;
 		String str = "{\"extra\":[";
-		List<String> components = new ArrayList<String>();
+		List<String> components = new ArrayList<>();
 		for (Object obj : comps) components.add(IChatBaseComponentToString(obj));
 		str += String.join(",",components);
 		str += "],\"text\":\"\"}";
@@ -82,25 +84,20 @@ public class ReflectionUtils {
 	
 	public static String getItemTranslatable(ItemStack item) {
 		try {
-			Class<?> craftItemClass = getClassCraftBukkit("inventory.CraftItemStack");
-			Class<?> nmsItemStackClass = getClassNMS("ItemStack","world.item");
-			Method methodNMSCopy = craftItemClass.getMethod("asNMSCopy",ItemStack.class);
-			Method methodGetItem = nmsItemStackClass.getMethod("getItem");
+			Method methodNMSCopy = ClassCraftItemStack.getMethod("asNMSCopy",ItemStack.class);
+			Method methodGetItem = ClassItemStackNMS.getMethod("getItem");
 			Class<?> nmsItemClass = getClassNMS("Item","world.item");
 			Method methodGetName = nmsItemClass.getMethod("getName");
 			Object ItemStackNMS = methodNMSCopy.invoke(null,item);
 			Object ItemNMS = methodGetItem.invoke(ItemStackNMS);
-			String name = null;
-			name = (String) methodGetName.invoke(ItemNMS);
-
+			String name = (String) methodGetName.invoke(ItemNMS);
 			String color = null;
 			try {
 				Method methodGetRarity = null;
-				for (Method method : nmsItemStackClass.getMethods()) if (method.getReturnType().getName().endsWith("EnumItemRarity") && method.getParameterCount() == 0) {
+				for (Method method : ClassItemStackNMS.getMethods()) if (method.getReturnType().getName().endsWith("EnumItemRarity") && method.getParameterCount() == 0) {
 					methodGetRarity = method;
 					break;
 				}
-//				Method methodGetRarity = nmsItemStackClass.getMethod(Utils.getVersionInt() >= 17 ? "z" : Utils.getVersionInt() > 13 ? "v" : "u");
 				Class<?> itemRarityEnum = getClassNMS("EnumItemRarity","world.item");
 				Field itemRarityE = itemRarityEnum.getDeclaredField("e");
 				Class<?> chatFormatEnum = getClassNMS("EnumChatFormat","");
@@ -116,13 +113,11 @@ public class ReflectionUtils {
 	
 	public static String getNameItem(ItemStack item) {
 		try {
-			Object name = null;
 			ItemMeta meta = item.getItemMeta();
-			Class<?> craftMetaClass = getClassCraftBukkit("inventory.CraftMetaItem");
-			Field displayNameField = craftMetaClass.getDeclaredField("displayName");
+			Field displayNameField = ClassCraftMetaItem.getDeclaredField("displayName");
 			displayNameField.setAccessible(true);
-			Object MetaItemNMS = craftMetaClass.cast(meta);
-			name = displayNameField.get(MetaItemNMS);
+			Object MetaItemNMS = ClassCraftMetaItem.cast(meta);
+			Object name = displayNameField.get(MetaItemNMS);
 			return IChatBaseComponentToString(name);
 		} catch (Exception e) {e.printStackTrace();}
 		return null;
@@ -133,10 +128,9 @@ public class ReflectionUtils {
 			ItemMeta meta = item.getItemMeta();
 			if (name == null) meta.setDisplayName(null);
 			else {
-				Class<?> craftMetaClass = getClassCraftBukkit("inventory.CraftMetaItem");
-				Field displayNameField = craftMetaClass.getDeclaredField("displayName");
+				Field displayNameField = ClassCraftMetaItem.getDeclaredField("displayName");
 				displayNameField.setAccessible(true);
-				Object MetaItemNMS = craftMetaClass.cast(meta);
+				Object MetaItemNMS = ClassCraftMetaItem.cast(meta);
 				try {
 					displayNameField.set(MetaItemNMS,IChatBaseComponentToString(name));
 				} catch (Exception e1) {
@@ -211,8 +205,7 @@ public class ReflectionUtils {
 		List<Field> list = new ArrayList<Field>();
 		if (clazz == null) return list;
 		Field[] arr = clazz.getDeclaredFields();
-		for (int i = 0; i < arr.length; i++) {
-			Field field = arr[i];
+		for (Field field : arr) {
 			field.setAccessible(true);
 			if (type == null || field.getType() == type) list.add(field);
 		}

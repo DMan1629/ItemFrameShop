@@ -38,14 +38,13 @@ import org.bukkit.scheduler.BukkitRunnable;
 
 import javax.annotation.Nullable;
 import java.util.Arrays;
-import java.util.Locale;
 import java.util.Objects;
 import java.util.UUID;
 
 public class ItemFrameShop extends Listener {
-	private static ItemStack empty = new ItemStack(Material.LIGHT_GRAY_STAINED_GLASS_PANE);
-	private static ItemStack close;
-	private static ItemStack delete;
+	private static final ItemStack empty = new ItemStack(Material.LIGHT_GRAY_STAINED_GLASS_PANE);
+	private static final ItemStack close;
+	private static final ItemStack delete;
 	
 	static {
 		ItemMeta meta = empty.getItemMeta();
@@ -55,7 +54,7 @@ public class ItemFrameShop extends Listener {
 		delete = ReflectionUtils.setNameItem(new ItemStack(Material.BARRIER),ReflectionUtils.buildIChatBaseComponentString("selectWorld.delete",true,"dark_red"));
 	}
 	
-	private ItemFrame frame;
+	private final ItemFrame frame;
 	private UUID ownerID = null;
 	private ShopType type = null;
 	private ItemStack sellItem = null;
@@ -288,8 +287,7 @@ public class ItemFrameShop extends Listener {
 	private boolean testRemove(int amount) {
 		if (amount <= 0 || this.type == null) return false;
 		if (this.type == ShopType.ADMINSHOP) return true;
-		if (amount > getAmount() || (this.type.requireInventory() && getInventory() == null)) return false;
-		return true;
+		return amount <= getAmount() && (!this.type.requireInventory() || getInventory() != null);
 	}
 	
 	public Block getAttachedBlock() {
@@ -538,7 +536,7 @@ public class ItemFrameShop extends Listener {
 		private final int slotDelete = lines * 9 - 9;
 		
 		public EditMenu(Player player, boolean isCreate) {
-			super(Bukkit.createInventory(Objects.requireNonNull(player),lines * 9,Utils.chatColors("&b" + (isCreate ? "Create" : "Edit") + " &6Shop")));
+			super(Bukkit.createInventory(Objects.requireNonNull(player),lines * 9,Utils.chatColors("&b" + (isCreate ? "Create" : "Edit") + " &6Shop"))); // From config
 			this.player = player;
 			this.isCreate = isCreate;
 			this.shopPrice = getPrice();
@@ -549,8 +547,6 @@ public class ItemFrameShop extends Listener {
 				Object name = null;
 				if (item.getItemMeta().hasDisplayName()) name = ReflectionUtils.getNameItem(item);
 				else name = ReflectionUtils.getItemTranslatable(item);
-				/*name = ReflectionUtils.buildIChatBaseComponentStringExtra(name,ReflectionUtils.buildIChatBaseComponentString(" (" +
-						(shopType == ShopType.ADMINSHOP ? "∞" : getAmount(shopType)) + ")",false,"white"));*/
 				item = ReflectionUtils.setNameItem(item,name);
 			}
 			inventory.setItem(slotItem,item);
@@ -596,9 +592,9 @@ public class ItemFrameShop extends Listener {
 				event.getView().close();
 				String msg;
 				if (success) {
-					msg = "&aShop " + (isCreate ? "created" : "changed") + " successfully!";
+					msg = "&aShop " + (isCreate ? "created" : "changed") + " successfully!"; // From config
 					canBeOpen();
-				} else msg = "&cProblem " + (isCreate ? "creating" : "changing") + " shop";
+				} else msg = "&cProblem " + (isCreate ? "creating" : "changing") + " shop"; // From config
 				Utils.chatColors(player,msg);
 			}
 		}
@@ -620,7 +616,7 @@ public class ItemFrameShop extends Listener {
 			String name;
 			if (shopType == ShopType.ADMINSHOP) {
 				item = new ItemStack(Material.COMMAND_BLOCK);
-				name = ReflectionUtils.buildIChatBaseComponentString("Admin",false,"light_purple");
+				name = ReflectionUtils.buildIChatBaseComponentString("Admin",false,"light_purple"); // From config
 			} else if (shopType == ShopType.ITEMFRAME) {
 				item = new ItemStack(Material.ITEM_FRAME);
 				name = ReflectionUtils.buildIChatBaseComponentString("item.minecraft.item_frame",true,"yellow");
@@ -657,10 +653,10 @@ public class ItemFrameShop extends Listener {
 				event.setCancelled(true);
 				try {
 					String read = event.getMessage().trim();
-					if (read.equalsIgnoreCase("cancel"));
+					if (read.equalsIgnoreCase("cancel")); // From config
 					else {
 						double suffixMult = 1;
-						if (read.toLowerCase().endsWith("k") || read.toLowerCase().endsWith("m") || read.toLowerCase().endsWith("b")) {
+						if (read.toLowerCase().endsWith("k") || read.toLowerCase().endsWith("m") || read.toLowerCase().endsWith("b")) { // From config
 							String suffix = read.substring(read.length() - 1);
 							read = read.substring(0,read.length() - 1).toLowerCase();
 							if (suffix.equals("k")) suffixMult = 1e3;
@@ -706,7 +702,7 @@ public class ItemFrameShop extends Listener {
 		private final int slotClose = lines * 9 - 5;
 		
 		public BuyMenu(Player player) {
-			super(Bukkit.createInventory(Objects.requireNonNull(player),lines * 9,Utils.chatColors("&6Shop")));
+			super(Bukkit.createInventory(Objects.requireNonNull(player),lines * 9,Utils.chatColors("&6Shop"))); // From config
 			this.player = player;
 			for (int i = 0; i < lines * 9; i++) inventory.setItem(i,empty);
 			inventory.setItem(slotItem,getSellItem());

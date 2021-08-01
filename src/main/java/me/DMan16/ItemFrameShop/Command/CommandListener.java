@@ -17,12 +17,8 @@ public class CommandListener implements CommandExecutor {
 	}
 	
 	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
-//		if (args.length == 1 && args[0].equalsIgnoreCase("test")) sender.sendMessage(Main.ItemFrameShopManager.toString());
-//		else if (args.length == 1 && args[0].equalsIgnoreCase("config")) sender.sendMessage(Main.config().saveToString());
-//		else {
-		Main.getInstance().reloadConfig();
+		Main.reloadConfigs();
 		sender.sendMessage(Utils.chatColors("&aConfig reloaded"));
-//		}
 		return true;
 	}
 }

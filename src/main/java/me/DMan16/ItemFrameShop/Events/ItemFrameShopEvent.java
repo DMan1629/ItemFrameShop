@@ -9,7 +9,7 @@ import org.bukkit.event.HandlerList;
 import me.DMan16.ItemFrameShop.Shop.ItemFrameShop;
 
 public abstract class ItemFrameShopEvent extends Event implements Cancellable {
-	private HandlerList Handlers = new HandlerList();
+	private final HandlerList Handlers = new HandlerList();
 	protected boolean cancel = false;
 	protected final ItemFrameShop ItemFrameShop;
 	

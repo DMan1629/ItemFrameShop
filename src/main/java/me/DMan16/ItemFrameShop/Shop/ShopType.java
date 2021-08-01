@@ -7,7 +7,7 @@ public enum ShopType {
 	
 	public final String name;
 	
-	private ShopType(String name) {
+	ShopType(String name) {
 		this.name = name;
 	}
 	
