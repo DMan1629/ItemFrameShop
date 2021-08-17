@@ -111,10 +111,11 @@ public class PacketUtils {
 			Constructor<?> PacketPlayOutEntityDestroyConstructor;
 			try {
 				PacketPlayOutEntityDestroyConstructor = PacketPlayOutEntityDestroy.getConstructor(int[].class);
+				return PacketPlayOutEntityDestroyConstructor.newInstance(new int[] {ID});
 			} catch (Exception e) {
 				PacketPlayOutEntityDestroyConstructor = PacketPlayOutEntityDestroy.getConstructor(int.class);
+				return PacketPlayOutEntityDestroyConstructor.newInstance(ID);
 			}
-			return PacketPlayOutEntityDestroyConstructor.newInstance(ID);
 		} catch (Exception e) {e.printStackTrace();}
 		return null;
 	}

@@ -1,32 +1,101 @@
-SaveShopsError: "&cError saving shops in world &e<world>>&c!"
-SaveShopsSuccess: "&aAll shops have been saved!"
-PlayerPurchase: "&fPurchased &6<amount>>&f items!"
-ShopInsufficientAmount: "&cInsufficient amount of items in shop!"
-ShopCreateSuccess: "&aShop created successfully!"
-ShopCreateError: "&cProblem creating shop"
-ShopChangeSuccess: "&aShop changed successfully!"
-ShopChangeError: "&cProblem changing shop"
-PriceNotSet: "&cNot set"
-PriceItemLore:
+# Message to send when issuing reload command
+config-reloaded: "&aConfig reloaded"
+
+# Title of the GUI when creating a shop
+shop-title-create: "&bCreate &6Shop"
+# Title of the GUI when editing a shop
+shop-title-edit: "&bEdit &6Shop"
+# Title of the GUI when buying from the shop
+shop-title-buy: "&6Shop"
+
+# Name of the Admin type
+shop-type-admin: "Admin"
+# Translation to use instead of the set value above
+# Will always be used instead of the set value above if not empty!
+shop-type-admin-translation: ""
+
+# Should the suffixes be exact, i.e. NOT ignore case
+currency-suffixes-exact: true
+
+# Each line represents a 1000x jump
+# Starts from 1000 - anything below will not a have a suffix
+# Add new lines for suffixes for bigger amounts
+# Leave empty for no suffixes
+currency-suffixes:
+  - "k"
+  - "m"
+  - "b"
+  - "t"
+  - "q"
+
+# Message to send when an error occurs during shop creation
+shop-create-error:
+  - "&cProblem creating shop"
+  - "&ePlease try again"
+
+# Message to send when a shop was successfully created
+shop-create-success: "&aShop created successfully!"
+
+# Message to send when an error occurs during shop changing
+shop-change-error:
+  - "&cProblem changing shop"
+  - "&ePlease try again"
+
+# Message to send when a shop was successfully changed
+shop-change-success: "&aShop changed successfully!"
+
+# String to use instead of price when creating a shop before the price was set
+price-not-set: "&cNot set"
+
+# Buying item's name (the Emerald in the buying GUI))
+price-buy-item-name: "&f<price>"
+
+# Buying item's lore (the Emerald in the buying GUI))
+price-buy-item-lore: ""
+
+# Border item's name (around the item in the buying GUI)
+price-border-name: "&f<amount>"
+
+# Border item's lore (around the item in the buying GUI)
+price-border-lore: ""
+
+# Edit price item's name
+price-edit-item-name: "&aPrice"
+
+# Edit price item's lore
+price-edit-item-lore:
   - ""
-  - "<price>"
+  - "&f<price>"
   - ""
   - "&8>&7> &eClick to change &7<&8<"
-ShopTypeAdmin: "Admin"
-PriceEnterMessageCancel: "cancel"
-PriceEnterMessageWithMaximum:
+
+# Message sent to the player after purchasing an item in a shop
+player-purchase: "&fPurchased &6<amount>&f items!"
+
+# Message sent to the player when the shop has insufficient amount of items they requested to buy
+shop-insufficient-amount: "&cInsufficient amount of items in shop! Current amount: &6<amount>"
+
+# String to use during price input to cancel the input
+# Must NOT be empty! Default value will be used in that case!
+price-enter-message-cancel: "cancel"
+
+# Message to send to the player to enter price for the shop (shop prices HAVE a maximum limit)
+price-enter-message-with-maximum:
   - "&ePlease insert the price in the chat."
   - "&eThe price must be between <minimum> and <maximum>, 0 = closed."
   - "&eType <cancel> to return."
-PriceEnterMessageWithoutMaximum:
+
+# Message to send to the player to enter price for the shop (shop prices DON'T HAVE a maximum limit)
+price-enter-message-without-maximum:
   - "&ePlease insert the price in the chat."
   - "&eThe price must be bigger than <minimum>, 0 = closed."
   - "&eType <cancel> to return."
-CurrencySuffixThousand: "k"
-CurrencySuffixMillion: "m"
-CurrencySuffixBillion: "b"
-PriceEnterErrorWithMaximum: "&cOnly numbers between <minimum> and <maximum> or <cancel>! 0 = closed"
-PriceEnterErrorWithoutMaximum: "&cOnly numbers bigger than <minimum> or <cancel>! 0 = closed"
-ShopTitleCreate: "&bCreate &6Shop"
-ShopTitleEdit: "&bEdit &6Shop"
-ShopTitleBuy: "&6Shop"
+
+# Message to send to the player when price entered is illegal (shop prices HAVE a maximum limit)
+price-enter-error-with-maximum: "&cOnly numbers between <minimum> and <maximum> or <cancel>! 0 = closed"
+
+# Message to send to the player when price entered is illegal (shop prices DON'T HAVE a maximum limit)
+price-enter-error-without-maximum: "&cOnly numbers bigger than <minimum> or <cancel>! 0 = closed"
+
+# Logging message when an error occurred when saving a world's shops
+save-shops-error: "&cError saving shops in world &e<world>>&c!"

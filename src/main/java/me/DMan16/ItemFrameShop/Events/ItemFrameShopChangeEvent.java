@@ -1,39 +1,35 @@
 package me.DMan16.ItemFrameShop.Events;
 
-import java.util.Objects;
-
 import org.bukkit.entity.Player;
 
 import me.DMan16.ItemFrameShop.Shop.ItemFrameShop;
 import me.DMan16.ItemFrameShop.Shop.ShopType;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class ItemFrameShopChangeEvent extends ItemFrameShopEvent {
 	private final Player player;
 	private ShopType type;
 	private double newPrice;
 	
-	public ItemFrameShopChangeEvent(ItemFrameShop ItemFrameShop, Player player, ShopType newType, double newPrice) {
+	public ItemFrameShopChangeEvent(@NotNull ItemFrameShop ItemFrameShop, @Nullable Player player, @NotNull ShopType newType, double newPrice) {
 		super(ItemFrameShop);
-		this.player = Objects.requireNonNull(player);
-		this.type = Objects.requireNonNull(newType);
+		this.player = player;
+		this.type = newType;
 		this.newPrice = newPrice;
 	}
 	
-	/**
-	 * Before change
-	 */
-	public ItemFrameShop getItemFrameShop() {
-		return ItemFrameShop;
-	}
-	
+	@Nullable
 	public Player getWhoChanged() {
 		return player;
 	}
 	
+	@NotNull
 	public ShopType getOldType() {
 		return ItemFrameShop.getType();
 	}
-		
+	
+	@NotNull
 	public ShopType getNewType() {
 		return type;
 	}
@@ -46,11 +42,13 @@ public class ItemFrameShopChangeEvent extends ItemFrameShopEvent {
 		return newPrice;
 	}
 	
-	public ItemFrameShopChangeEvent setNewType(ShopType type) {
-		this.type = Objects.requireNonNull(type);
+	@NotNull
+	public ItemFrameShopChangeEvent setNewType(@NotNull ShopType type) {
+		this.type = type;
 		return this;
 	}
 	
+	@NotNull
 	public ItemFrameShopChangeEvent setNewType(double price) {
 		this.newPrice = price;
 		return this;

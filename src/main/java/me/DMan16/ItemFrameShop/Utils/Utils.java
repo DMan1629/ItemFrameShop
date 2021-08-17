@@ -1,6 +1,6 @@
 package me.DMan16.ItemFrameShop.Utils;
 
-import me.DMan16.ItemFrameShop.Main;
+import me.DMan16.ItemFrameShop.ItemFrameShopMain;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
@@ -13,25 +13,26 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.io.BukkitObjectInputStream;
 import org.bukkit.util.io.BukkitObjectOutputStream;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.yaml.snakeyaml.external.biz.base64Coder.Base64Coder;
 
-import javax.annotation.Nullable;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class Utils {
-	
 	public static String chatColors(String str) {
-		str = chatColorsStrip(str);
+		if (str == null) return null;
 		return ChatColor.translateAlternateColorCodes('&',chatColorsHex(str));
 	}
 	
-	public static String chatColorsHex(String str) {
+	private static String chatColorsHex(@NotNull String str) {
 		Pattern unicode = Pattern.compile("\\\\u\\+[a-fA-F0-9]{4}");
 		Matcher match = unicode.matcher(str);
 		while (match.find()) {
@@ -50,48 +51,58 @@ public class Utils {
 		return str;
 	}
 	
-	public static List<String> chatColors(List<String> list) {
-		List<String> newList = new ArrayList<String>();
+	@NotNull
+	public static List<String> chatColors(@NotNull List<String> list) {
+		List<String> newList = new ArrayList<>();
 		for (String str : list) if (str != null)
 			if (str.trim().isEmpty()) newList.add("");
 			else newList.add(chatColors(str));
 		return newList;
 	}
 	
-	public static void chatColors(CommandSender sender, String str) {
+	public static void chatColors(@NotNull CommandSender sender, @NotNull String str) {
 		sender.sendMessage(chatColors(str));
 	}
 	
-	public static void chatColorsLogPlugin(String str) {
-		str = chatColorsPlugin(str);
+	public static void logPlugin(@NotNull String str) {
+		str = chatColorsPlugin("") + str;
 		if (getVersionInt() < 16) str = chatColorsStrip(str);
 		Bukkit.getLogger().info(str);
 	}
 	
-	public static String chatColorsPlugin(String str) {
-		return chatColors("&d[" + Main.pluginNameColors + "&d]&r " + str);
+	public static void chatColorsLogPlugin(@NotNull String str) {
+		logPlugin(chatColors(str));
+	}
+	
+	@NotNull
+	public static String chatColorsPlugin(@NotNull String str) {
+		return chatColors("&d[" + ItemFrameShopMain.pluginNameColors + "&d]&r " + str);
 	}
 
-	public static void chatColorsPlugin(CommandSender sender, String str) {
+	public static void chatColorsPlugin(@NotNull CommandSender sender, @NotNull String str) {
 		sender.sendMessage(chatColorsPlugin(str));
 	}
 	
-	public static void chatColorsActionBar(Player player, String str) {
+	public static void chatColorsActionBar(@NotNull Player player, @NotNull String str) {
 		player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(Utils.chatColors(str)));
 	}
 	
-	public static String chatColorsStrip(String str) {
+	@NotNull
+	public static String chatColorsStrip(@NotNull String str) {
 		return ChatColor.stripColor(str);
 	}
 	
-	public static NamespacedKey namespacedKey(String name) {
-		return new NamespacedKey(Main.getInstance(),name);
+	@NotNull
+	public static NamespacedKey namespacedKey(@NotNull String name) {
+		return new NamespacedKey(ItemFrameShopMain.getInstance(),name);
 	}
 	
+	@Nullable
 	public static ItemStack asQuantity(ItemStack item, int amount) {
 		return asQuantity(item,amount,false);
 	}
 	
+	@Nullable
 	public static ItemStack asQuantity(ItemStack item, int amount, boolean allowIllegal) {
 		if (isNull(item)) return null;
 		ItemStack clone = item.clone();
@@ -107,35 +118,34 @@ public class Utils {
 		if (item1 == item2 || item1.equals(item2)) return true;
 		ItemStack cmp1 = asQuantity(item1,1);
 		ItemStack cmp2 = asQuantity(item2,1);
-		return cmp1 == cmp2 || cmp1.equals(cmp2);
+		return Objects.equals(cmp1,cmp2);
 	}
 	
-	public static boolean isNull(@Nullable ItemStack item) {
+	public static boolean isNull(ItemStack item) {
 		if (item == null || item.getAmount() <= 0) return true;
 		if (getVersionInt() < 15) return item.getType().name().endsWith("AIR");
 		return item.getType().isAir();
 	}
 	
-	public static boolean givePlayer(Player player, ItemStack item, @Nullable Location drop, boolean glow) {
-		if (player == null || isNull(item)) return false;
+	public static boolean givePlayer(@NotNull Player player, ItemStack item, @Nullable Location drop, boolean glow) {
+		if (isNull(item)) return false;
 		if (!player.isDead() && player.getInventory().addItem(item).isEmpty()) return true;
 		if (drop != null) {
 			Item droppedItem = dropItem(drop,item);
-			droppedItem.setGlowing(glow);
+			if (droppedItem != null && glow) droppedItem.setGlowing(true);
 		}
 		return false;
 	}
 	
-	public static Item dropItem(Location drop, ItemStack item) {
-		if (drop == null || item == null) return null;
-		return drop.getWorld().dropItemNaturally(drop,item);
+	public static Item dropItem(@NotNull Location drop, @NotNull ItemStack item) {
+		return drop.getWorld() == null ? null : drop.getWorld().dropItemNaturally(drop,item);
 	}
 	
-	public static boolean givePlayer(Player player, ItemStack item, boolean glow) {
-		if (player == null) return false;
+	public static boolean givePlayer(@NotNull Player player, @NotNull ItemStack item, boolean glow) {
 		return givePlayer(player,item,player.getLocation(),glow);
 	}
 	
+	@NotNull
 	public static String getVersion() {
 		return Bukkit.getServer().getVersion().split("\\(MC:")[1].split("\\)")[0].trim().split(" ")[0].trim();
 	}
@@ -148,17 +158,16 @@ public class Utils {
 		return Integer.parseInt(getVersion().split("\\.")[1]);
 	}
 	
-	/**
-	 * @param digitsAfterDot >= 0
-	 */
-	public static double roundAfterDot(double num, int digitsAfterDot) {
+	public static double roundAfterDot(double num) {
+		int digitsAfterDot = Math.min(Math.max(ItemFrameShopMain.config().getInt("price-round-after-dot"),0),2);
 		if (digitsAfterDot < 0) return num;
 		if (digitsAfterDot == 0) return Math.round(num);
-		String format = "0.";
-		for (int i = 0; i < digitsAfterDot; i++) format += "0";
-		return Double.parseDouble((new DecimalFormat(format)).format(num));
+		StringBuilder format = new StringBuilder("0.");
+		for (int i = 0; i < digitsAfterDot; i++) format.append("0");
+		return Double.parseDouble((new DecimalFormat(format.toString())).format(num));
 	}
 	
+	@Nullable
 	public static String ObjectToBase64(Object obj) {
 		try {
 			ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
@@ -171,6 +180,7 @@ public class Utils {
 		return null;
     }
 	
+    @Nullable
 	public static Object ObjectFromBase64(String data) {
 		try {
 			ByteArrayInputStream inputStream = new ByteArrayInputStream(Base64Coder.decodeLines(data));

@@ -7,11 +7,12 @@ import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.Inventory;
+import org.jetbrains.annotations.NotNull;
 
 public class ListenerInventory extends Listener {
 	protected final Inventory inventory;
 	
-	public ListenerInventory(Inventory inv) {
+	public ListenerInventory(@NotNull Inventory inv) {
 		this.inventory = inv;
 	}
 	

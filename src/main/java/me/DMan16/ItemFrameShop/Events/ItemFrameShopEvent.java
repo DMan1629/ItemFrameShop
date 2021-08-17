@@ -7,16 +7,18 @@ import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 
 import me.DMan16.ItemFrameShop.Shop.ItemFrameShop;
+import org.jetbrains.annotations.NotNull;
 
 public abstract class ItemFrameShopEvent extends Event implements Cancellable {
 	private final HandlerList Handlers = new HandlerList();
 	protected boolean cancel = false;
 	protected final ItemFrameShop ItemFrameShop;
 	
-	protected ItemFrameShopEvent(ItemFrameShop shop) {
-		this.ItemFrameShop = Objects.requireNonNull(shop);
+	protected ItemFrameShopEvent(@NotNull ItemFrameShop shop) {
+		this.ItemFrameShop = shop;
 	}
 	
+	@NotNull
 	public ItemFrameShop getShop() {
 		return ItemFrameShop;
 	}
@@ -30,6 +32,7 @@ public abstract class ItemFrameShopEvent extends Event implements Cancellable {
 	}
 
 	@Override
+	@NotNull
 	public HandlerList getHandlers() {
 		return Handlers;
 	}

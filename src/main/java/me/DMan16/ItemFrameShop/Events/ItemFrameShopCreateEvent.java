@@ -5,10 +5,11 @@ import java.util.Objects;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
-import me.DMan16.ItemFrameShop.Main;
+import me.DMan16.ItemFrameShop.ItemFrameShopMain;
 import me.DMan16.ItemFrameShop.Shop.ItemFrameShop;
 import me.DMan16.ItemFrameShop.Shop.ShopType;
 import me.DMan16.ItemFrameShop.Utils.Utils;
+import org.jetbrains.annotations.NotNull;
 
 public class ItemFrameShopCreateEvent extends ItemFrameShopEvent {
 	private final Player owner;
@@ -16,31 +17,27 @@ public class ItemFrameShopCreateEvent extends ItemFrameShopEvent {
 	private ItemStack sellItem;
 	private double price;
 	
-	public ItemFrameShopCreateEvent(ItemFrameShop ItemFrameShop, Player owner, ShopType type, ItemStack sellItem, double price) {
+	public ItemFrameShopCreateEvent(@NotNull ItemFrameShop ItemFrameShop, @NotNull Player owner, @NotNull ShopType type, @NotNull ItemStack sellItem, double price) {
 		super(ItemFrameShop);
-		this.owner = Objects.requireNonNull(owner);
-		this.type = Objects.requireNonNull(type);
+		this.owner = owner;
+		this.type = type;
 		this.sellItem = Objects.requireNonNull(Utils.isNull(sellItem) ? null : sellItem);
 		setPrice(price);
 	}
 	
-	/**
-	 * Before creation
-	 */
-	public ItemFrameShop getItemFrameShop() {
-		return ItemFrameShop;
-	}
-	
+	@NotNull
 	public Player getOwner() {
 		return owner;
 	}
 	
+	@NotNull
 	public ShopType getType() {
 		return type;
 	}
 	
-	public ItemFrameShopCreateEvent setType(ShopType type) {
-		this.type = Objects.requireNonNull(type);
+	@NotNull
+	public ItemFrameShopCreateEvent setType(@NotNull ShopType type) {
+		this.type = type;
 		return this;
 	}
 	
@@ -51,19 +48,22 @@ public class ItemFrameShopCreateEvent extends ItemFrameShopEvent {
 	/**
 	 * @param price > 0; closed if <= 0
 	 */
+	@NotNull
 	public ItemFrameShopCreateEvent setPrice(double price) {
-		this.price = Math.max(0,Utils.roundAfterDot(price,Math.min(Math.max(Main.config().getInt("price-round-after-dot"),0),2)));
+		this.price = Math.max(0,Utils.roundAfterDot(price));
 		return this;
 	}
 	
 	/**
 	 * @return clone of the selling item
 	 */
+	@NotNull
 	public ItemStack getSellItem() {
 		return this.sellItem.clone();
 	}
 	
-	public ItemFrameShopCreateEvent setSellItem(ItemStack item) {
+	@NotNull
+	public ItemFrameShopCreateEvent setSellItem(@NotNull ItemStack item) {
 		this.sellItem = Objects.requireNonNull(Utils.isNull(item) ? null : item);
 		return this;
 	}

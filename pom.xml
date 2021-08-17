@@ -25,6 +25,27 @@
 					</compilerArgs>
 				</configuration>
 			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-shade-plugin</artifactId>
+				<version>3.1.0</version>
+				<configuration>
+					<relocations>
+						<relocation>
+							<pattern>org.bstats</pattern>
+							<shadedPattern>me.DMan16.ItemFrameShop</shadedPattern>
+						</relocation>
+					</relocations>
+				</configuration>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>shade</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
 		</plugins>
 	</build>
 	<repositories>
@@ -45,8 +66,8 @@
 			<url>http://repo.extendedclip.com/content/repositories/placeholderapi/</url>
 		</repository>
 		<repository>
-			<id>everything</id>
-			<url>https://repo.citizensnpcs.co/</url>
+			<id>placeholderapi</id>
+			<url>http://repo.extendedclip.com/content/repositories/placeholderapi/</url>
 		</repository>
 	</repositories>
 	<dependencies>
@@ -75,16 +96,28 @@
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
-			<groupId>net.citizensnpcs</groupId>
-			<artifactId>citizens</artifactId>
-			<version>2.0.27-SNAPSHOT</version>
+			<groupId>me.clip</groupId>
+			<artifactId>placeholderapi</artifactId>
+			<version>2.9.2</version>
 			<scope>provided</scope>
 		</dependency>
         <dependency>
             <groupId>com.googlecode.json-simple</groupId>
             <artifactId>json-simple</artifactId>
             <version>1.1.1</version>
-            <scope>compile</scope>
+            <scope>provided</scope>
         </dependency>
+		<dependency>
+			<groupId>org.jetbrains</groupId>
+			<artifactId>annotations</artifactId>
+			<version>21.0.1</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.bstats</groupId>
+			<artifactId>bstats-bukkit</artifactId>
+			<version>2.2.1</version>
+			<scope>provided</scope>
+		</dependency>
     </dependencies>
 </project>

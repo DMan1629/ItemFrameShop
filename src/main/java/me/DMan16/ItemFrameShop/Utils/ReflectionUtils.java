@@ -3,8 +3,9 @@ package me.DMan16.ItemFrameShop.Utils;
 import org.bukkit.Bukkit;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -19,11 +20,11 @@ public class ReflectionUtils {
 	public static final Class<?> ClassCraftMetaItem = getClassCraftBukkit("inventory.CraftMetaItem");
 	
 	
-	private static String removeUnnecessaryDots(String str) {
+	private static String removeUnnecessaryDots(@NotNull String str) {
 		return Arrays.stream(str.split("\\.")).filter(s -> !s.isEmpty()).collect(Collectors.joining("."));
 	}
 	
-	public static Class<?> getClassNMS(String name, String subPackageNameNewNMS) {
+	public static Class<?> getClassNMS(@NotNull String name, @NotNull String subPackageNameNewNMS) {
 		try {
 			return Class.forName(removeUnnecessaryDots("net.minecraft.server." + version + "." + name));
 		} catch (Exception e) {
@@ -34,7 +35,7 @@ public class ReflectionUtils {
 		return null;
 	}
 	
-	public static Class<?> getClassCraftBukkit(String name) {
+	public static Class<?> getClassCraftBukkit(@NotNull String name) {
 		try {
 			return Class.forName(removeUnnecessaryDots("org.bukkit.craftbukkit." + version + "." + name));
 		} catch (Exception e) {}

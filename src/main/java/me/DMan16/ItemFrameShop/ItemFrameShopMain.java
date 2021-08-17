@@ -1,9 +1,9 @@
 package me.DMan16.ItemFrameShop;
 
-import com.google.common.base.Charsets;
+import me.DMan16.ItemFrameShop.Utils.Metrics;
+import me.DMan16.ItemFrameShop.Utils.UpdateChecker;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -15,28 +15,22 @@ import me.DMan16.ItemFrameShop.Utils.EconomyManager;
 import me.DMan16.ItemFrameShop.Utils.Utils;
 import net.milkbowl.vault.economy.Economy;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.jetbrains.annotations.NotNull;
 
-import java.io.File;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.sql.DriverManager;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-public class Main extends JavaPlugin {
-	private static Main instance;
+public class ItemFrameShopMain extends JavaPlugin {
+	private static ItemFrameShopMain instance;
 	public static final String pluginName = "ItemFrameShop";
 	public static final String pluginNameColors = "&6&lItem&b&lFrame&a&lShop";
 	private static EconomyManager EconomyManager;
 	private static ItemFrameShopManager ItemFrameShopManager;
 	private int count = 0;
-	private FileConfiguration configMessages = null;
+	private MessagesManager messages = null;
 
 	public void onEnable() {
 		instance = this;
-		String versionMC = Bukkit.getServer().getVersion().split("\\(MC:")[1].split("\\)")[0].trim().split(" ")[0].trim();
-		if (Integer.parseInt(versionMC.split("\\.")[0]) < 1 || Integer.parseInt(versionMC.split("\\.")[1]) < 13) {
+		saveDefaultConfig();
+		messages = new MessagesManager();
+		if (Utils.getVersionMain() < 1 || Utils.getVersionInt() < 13) {
 			Utils.chatColorsLogPlugin("&cunsupported version! Minimum supported version: 1.13");
 			Bukkit.getPluginManager().disablePlugin(this);
 			return;
@@ -52,68 +46,68 @@ public class Main extends JavaPlugin {
 		Utils.chatColorsLogPlugin("&fTrying to hook to Economy provider...");
 		new BukkitRunnable() {
 			public void run() {
-				count++;
-				if (count > 30) {
+				if (count++ > 30) {
 					Utils.chatColorsLogPlugin("&cno supported Economy provider found!");
 					Bukkit.getPluginManager().disablePlugin(instance);
 					return;
 				}
 				RegisteredServiceProvider<Economy> economyProvider = getServer().getServicesManager().getRegistration(Economy.class);
 				try {
+					assert economyProvider != null;
 					EconomyManager = new EconomyManager(economyProvider.getProvider());
-					Utils.chatColorsLogPlugin("&aHook to Economy provider!");
-					new CommandListener();
-					new ShopListener();
-					Utils.chatColorsLogPlugin("&aLoaded, running on version: &f" + versionMC);
 					this.cancel();
+					finishLoading();
 				} catch (Exception e) {}
 			}
 		}.runTaskTimer(this,1,20);
-		loadConfigs();
 	}
 	
-	private void loadConfigs() {
-		saveDefaultConfig();
-		this.configMessages = loadCustomConfig("messages.yml");
+	private void finishLoading() {
+		Utils.chatColorsLogPlugin("&aHooked to &fVault&a economy! Provider: &b" + EconomyManager.economy.getName());
+		new CommandListener();
+		new ShopListener();
+		Utils.chatColorsLogPlugin("&aLoaded, running on version: &b" + Utils.getVersion());
+		try {
+			Metrics metrics = new Metrics(instance,12470);
+			Utils.chatColorsLogPlugin("&aHooked to &fMetrics&a provider!");
+		} catch (Exception e) {}
+		try {
+			new UpdateChecker(this,94017).getVersion(version -> {
+				if (this.getDescription().getVersion().equalsIgnoreCase(version)) {
+					Utils.chatColorsLogPlugin("&aRunning latest version!");
+				} else {
+					Utils.chatColorsLogPlugin("&aNew version available &f- &av&b" + version);
+				}
+			});
+		} catch (Exception e) {}
 	}
 	
 	public static void reloadConfigs() {
 		instance.reloadConfig();
-		instance.configMessages = loadCustomConfig("messages.yml");
+		instance.messages.reload();
 	}
 	
-	private static FileConfiguration loadCustomConfig(String name) {
-		File file = new File(instance.getDataFolder(),name);
-		if (!file.exists()) instance.saveResource(name,false);
-		FileConfiguration config = YamlConfiguration.loadConfiguration(file);
-		InputStream inputStream = instance.getResource(name);
-		if (inputStream != null) config.setDefaults(YamlConfiguration.loadConfiguration(new InputStreamReader(inputStream,Charsets.UTF_8)));
-		return config;
-	}
-	
-	public static Main getInstance() {
+	@NotNull
+	public static ItemFrameShopMain getInstance() {
 		return instance;
 	}
 	
+	@NotNull
 	public static FileConfiguration config() {
 		return instance.getConfig();
 	}
 	
-	public static FileConfiguration configMessages() {
-		return instance.configMessages;
+	@NotNull
+	public static MessagesManager messages() {
+		return instance.messages;
 	}
 	
-	public static List<String> getStringsConfig(FileConfiguration config, String option) {
-		if (!configMessages().contains(option)) return null;
-		if (configMessages().isString(option)) return new ArrayList(Arrays.asList((configMessages().getString(option))));
-		if (configMessages().isList(option)) return configMessages().getStringList(option);
-		return null;
-	}
-	
+	@NotNull
 	public static EconomyManager getEconomyManager() {
 		return EconomyManager;
 	}
 	
+	@NotNull
 	public static ItemFrameShopManager getItemFrameShopManager() {
 		return ItemFrameShopManager;
 	}

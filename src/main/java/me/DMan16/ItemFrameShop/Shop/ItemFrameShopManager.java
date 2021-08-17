@@ -4,7 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
-import me.DMan16.ItemFrameShop.Main;
+import me.DMan16.ItemFrameShop.ItemFrameShopMain;
 import me.DMan16.ItemFrameShop.Utils.PacketUtils;
 import me.DMan16.ItemFrameShop.Utils.ReflectionUtils;
 import me.DMan16.ItemFrameShop.Utils.Utils;
@@ -16,6 +16,8 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.ItemFrame;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -33,9 +35,9 @@ public class ItemFrameShopManager {
 	private final double yPriceDisplay = 0.2;
 	private final double yFaceDown = -0.5;
 	
-	private final HashMap<String,List<ItemFrameShop>> ItemFrameShops = new HashMap<String,List<ItemFrameShop>>();
-	private final List<ItemFrame> ItemFrameShopsFrames = new ArrayList<ItemFrame>();
-	private final String pluginDir = "plugins/" + Main.pluginName;
+	private final HashMap<String,List<ItemFrameShop>> ItemFrameShops = new HashMap<>();
+	private final List<ItemFrame> ItemFrameShopsFrames = new ArrayList<>();
+	private final String pluginDir = "plugins/" + ItemFrameShopMain.pluginName;
 	private final Path dir = Paths.get(pluginDir);
 	
 	public ItemFrameShopManager() throws IOException {
@@ -72,8 +74,11 @@ public class ItemFrameShopManager {
 						} catch (Exception e) {};
 						Location location = natLocation(world,x,y,z);
 						ItemFrame frame = null;
-						for (Entity entity : world.getChunkAt(location).getEntities())
-							if (entity instanceof ItemFrame && entity.getLocation().distance(location) <= 0.01) frame = (ItemFrame) entity;
+						for (Entity entity : world.getChunkAt(location).getEntities()) if ((entity instanceof ItemFrame) && entity.getLocation().distance(location) <= 0.01) {
+							frame = (ItemFrame) entity;
+							break;
+						}
+						if (frame == null || item == null) throw new Exception();
 						ItemFrameShop shop = new ItemFrameShop(frame,UUID.fromString(file.getName().split("\\.")[0]),type,item,price,amount,true);
 						if (shop.isShop()) {
 							count++;
@@ -89,7 +94,7 @@ public class ItemFrameShopManager {
 		for (File file : remove) file.delete();
 	}
 	
-	public void unload(World world) {
+	public void unload(@NotNull World world) {
 		write(world);
 		if (ItemFrameShops.containsKey(world.getName())) {
 			List<ItemFrameShop> shops = new ArrayList<>(ItemFrameShops.get(world.getName()));
@@ -97,8 +102,8 @@ public class ItemFrameShopManager {
 		}
 	}
 	
-	public void newShop(ItemFrameShop shop) {
-		if (!Objects.requireNonNull(shop).isShop()) return;
+	public void newShop(@NotNull ItemFrameShop shop) {
+		if (!shop.isShop()) return;
 		ItemFrame frame = shop.getFrame();
 		if (isShop(frame)) return;
 		World world = frame.getWorld();
@@ -107,18 +112,19 @@ public class ItemFrameShopManager {
 		ItemFrameShopsFrames.add(frame);
 	}
 	
-	public ItemFrameShop getShop(ItemFrame frame) {
-		if (!ItemFrameShopsFrames.contains(Objects.requireNonNull(frame)) || !ItemFrameShops.containsKey(frame.getWorld().getName())) return null;
+	@Nullable
+	public ItemFrameShop getShop(@NotNull ItemFrame frame) {
+		if (!ItemFrameShopsFrames.contains(frame) || !ItemFrameShops.containsKey(frame.getWorld().getName())) return null;
 		for (ItemFrameShop shop : ItemFrameShops.get(frame.getWorld().getName())) if (shop.getFrame().equals(frame)) return shop;
 		return null;
 	}
 	
-	public boolean isShop(ItemFrame frame) {
-		return getShop(Objects.requireNonNull(frame)) != null;
+	public boolean isShop(@NotNull ItemFrame frame) {
+		return getShop(frame) != null;
 	}
 	
 	@SuppressWarnings("unchecked")
-	public void write(World world) {
+	public void write(@NotNull World world) {
 		String worldName = world.getName();
 		if (!ItemFrameShops.containsKey(worldName)) return;
 		Path path = dir.resolve(worldName);
@@ -165,12 +171,13 @@ public class ItemFrameShopManager {
 			}
 			for (ItemFrameShop shop : remove) remove(shop,null);
 		} catch (Exception e) {
-			Utils.chatColorsLogPlugin("&cError saving shops in world &e" + world.getName() + "&c!"); // From config
+//			Utils.chatColorsLogPlugin("&cError saving shops in world &e" + world.getName() + "&c!"); // From config
+			String msg = ItemFrameShopMain.messages().saveShopsError(world);
+			if (msg != null) Utils.logPlugin(msg);
 		}
-		if (Bukkit.getWorlds().get(Bukkit.getWorlds().size() - 1).getName().equals(worldName))
-			Utils.chatColorsLogPlugin("&aAll shops have been saved!"); // From config
 	}
 	
+	@NotNull
 	public String toString() {
 		List<String> worldStrs = new ArrayList<>();
 		Bukkit.broadcastMessage("size: " + ItemFrameShops.entrySet().size());
@@ -179,7 +186,7 @@ public class ItemFrameShopManager {
 			for (ItemFrameShop shop : shops.getValue()) {
 				String str = "&6(&c&6) ";
 				Location loc = natLocation(shop.getFrame().getLocation());
-				str += "&f(" + loc.getWorld().getName() + "," + loc.getX() + "," + loc.getY() + "," + loc.getZ() + ")";
+				str += "&f(" + shop.getFrame().getWorld().getName() + "," + loc.getX() + "," + loc.getY() + "," + loc.getZ() + ")";
 				str += " ";
 				str += "&ftype: &e" + shop.getType().name;
 				str += "&f, ";
@@ -198,7 +205,7 @@ public class ItemFrameShopManager {
 		return Utils.chatColors(String.join("\n",worldStrs));
 	}
 	
-	private void spawnShopArmorStands(Object name, int ID, Location loc, double yOffset) {
+	private void spawnShopArmorStands(Object name, int ID, @NotNull Location loc, double yOffset) {
 		Object DataWatcher = PacketUtils.packetDataWatcherArmorStand(name);
 		Location location = loc.clone().add(0,yOffset,0);
 		for (Player player : loc.getWorld().getPlayers()) {
@@ -212,7 +219,7 @@ public class ItemFrameShopManager {
 		Object nameStr;
 		if (shop.getSellItem().getItemMeta().hasDisplayName()) nameStr = ReflectionUtils.getNameItem(shop.getSellItem());
 		else nameStr = ReflectionUtils.getItemTranslatable(shop.getSellItem());
-		Object priceStr = ReflectionUtils.ChatColorsToIChatBaseComponent(Main.getEconomyManager().currency(shop.getPrice()));
+		Object priceStr = ReflectionUtils.ChatColorsToIChatBaseComponent(ItemFrameShopMain.getEconomyManager().currency(shop.getPrice()));
 		int nameID = shop.getNameDisplay();
 		int priceID = shop.getPriceDisplay();
 		Location loc = natLocation(shop.getFrame().getLocation());
@@ -222,21 +229,21 @@ public class ItemFrameShopManager {
 		spawnShopArmorStands(priceStr,priceID,loc,priceOffset);
 	}
 	
-	private void spawnShopArmorStands(Object name, int ID, Location loc, double yOffset, Player player) {
+	private void spawnShopArmorStands(Object name, int ID, @NotNull Location loc, double yOffset, @NotNull Player player) {
 		Object DataWatcher = PacketUtils.packetDataWatcherArmorStand(name);
 		Location location = loc.clone().add(0,yOffset,0);
 		PacketUtils.sendPacket(PacketUtils.packetCreateArmorStand(ID,location,DataWatcher),player);
 		if (Utils.getVersionInt() > 14) PacketUtils.sendPacket(PacketUtils.packetUpdateArmorStand(ID,DataWatcher),player);
 	}
 	
-	public void spawnShopArmorStands(Player player) {
-		if (player == null || !ItemFrameShops.containsKey(player.getWorld().getName())) return;
+	public void spawnShopArmorStands(@NotNull Player player) {
+		if (!ItemFrameShops.containsKey(player.getWorld().getName())) return;
 		for (ItemFrameShop shop : ItemFrameShops.get(player.getWorld().getName())) {
 			if (!shop.isOpen()) continue;
 			Object nameStr;
 			if (shop.getSellItem().getItemMeta().hasDisplayName()) nameStr = ReflectionUtils.getNameItem(shop.getSellItem());
 			else nameStr = ReflectionUtils.getItemTranslatable(shop.getSellItem());
-			Object priceStr = ReflectionUtils.ChatColorsToIChatBaseComponent(Main.getEconomyManager().currency(shop.getPrice()));
+			Object priceStr = ReflectionUtils.ChatColorsToIChatBaseComponent(ItemFrameShopMain.getEconomyManager().currency(shop.getPrice()));
 			int nameID = shop.getNameDisplay();
 			int priceID = shop.getPriceDisplay();
 			Location loc = natLocation(shop.getFrame().getLocation());
@@ -247,8 +254,8 @@ public class ItemFrameShopManager {
 		}
 	}
 	
-	public void despawnShopArmorStands(ItemFrameShop shop) {
-		if (shop == null || shop.isOpen()) return;
+	public void despawnShopArmorStands(@NotNull ItemFrameShop shop) {
+		if (shop.isOpen()) return;
 		int nameID = shop.getNameDisplay();
 		int priceID = shop.getPriceDisplay();
 		for (Player player : shop.getFrame().getWorld().getPlayers()) {
@@ -257,16 +264,17 @@ public class ItemFrameShopManager {
 		}
 	}
 	
-	private Location natLocation(Location loc) {
+	@NotNull
+	private Location natLocation(@NotNull Location loc) {
 		return natLocation(loc.getWorld(),loc.getX(),loc.getY(),loc.getZ());
 	}
 	
-	private Location natLocation(World world, double x, double y, double z) {
+	@NotNull
+	private Location natLocation(@NotNull World world, double x, double y, double z) {
 		return new Location(world,x,y,z);
 	}
 	
-	void remove(ItemFrameShop shop, Player player) {
-		if (shop == null) return;
+	void remove(@NotNull ItemFrameShop shop, @Nullable Player player) {
 		if (shop.isShop()) shop.delete(player);
 		else {
 			String world = shop.getFrame().getWorld().getName();

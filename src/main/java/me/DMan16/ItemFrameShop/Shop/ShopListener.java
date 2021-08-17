@@ -13,7 +13,7 @@ import org.bukkit.event.world.WorldUnloadEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 
-import me.DMan16.ItemFrameShop.Main;
+import me.DMan16.ItemFrameShop.ItemFrameShopMain;
 import me.DMan16.ItemFrameShop.Utils.Listener;
 import me.DMan16.ItemFrameShop.Utils.Permissions;
 import me.DMan16.ItemFrameShop.Utils.Utils;
@@ -26,12 +26,11 @@ public class ShopListener extends Listener {
 	
 	@EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
 	public void onShopCreateEvent(PlayerInteractEntityEvent event) {
-		if (!(event.getRightClicked() instanceof ItemFrame) || event.isCancelled()) return;
+		if (!(event.getRightClicked() instanceof ItemFrame)) return;
 		ItemFrame frame = (ItemFrame) event.getRightClicked();
 		Player player = event.getPlayer();
 		ItemStack item = player.getInventory().getItemInMainHand();
-		if (frame == null || player == null || !player.isSneaking() || Utils.isNull(item) || !Utils.isNull(frame.getItem()) ||
-				Main.getItemFrameShopManager().isShop(frame)) return;
+		if (!player.isSneaking() || Utils.isNull(item) || !Utils.isNull(frame.getItem()) || ItemFrameShopMain.getItemFrameShopManager().isShop(frame)) return;
 		event.setCancelled(true);
 		boolean createInventory = Permissions.createInventoryShopPermission(player);
 		boolean createFrame = Permissions.createFrameShopPermission(player);
@@ -44,32 +43,32 @@ public class ShopListener extends Listener {
 	public void onPlayerJoinEvent(PlayerJoinEvent event) {
 		new BukkitRunnable() {
 			public void run() {
-				Main.getItemFrameShopManager().spawnShopArmorStands(event.getPlayer());
+				ItemFrameShopMain.getItemFrameShopManager().spawnShopArmorStands(event.getPlayer());
 			}
-		}.runTask(Main.getInstance());
+		}.runTask(ItemFrameShopMain.getInstance());
 	}
 	
-	@EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
+	@EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
 	public void onPlayerTeleportEvent(PlayerTeleportEvent event) {
 		new BukkitRunnable() {
 			public void run() {
-				Main.getItemFrameShopManager().spawnShopArmorStands(event.getPlayer());
+				ItemFrameShopMain.getItemFrameShopManager().spawnShopArmorStands(event.getPlayer());
 			}
-		}.runTask(Main.getInstance());
+		}.runTaskLater(ItemFrameShopMain.getInstance(),1);
 	}
 	
 	@EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
 	public void onSaveEvent(WorldSaveEvent event) {
-		Main.getItemFrameShopManager().write(event.getWorld());
+		ItemFrameShopMain.getItemFrameShopManager().write(event.getWorld());
 	}
 	
 	@EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
 	public void onLoadEvent(WorldLoadEvent event) {
-		Main.getItemFrameShopManager().loadInfoFromPath(event.getWorld());
+		ItemFrameShopMain.getItemFrameShopManager().loadInfoFromPath(event.getWorld());
 	}
 	
 	@EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
 	public void onUnloadEvent(WorldUnloadEvent event) {
-		Main.getItemFrameShopManager().unload(event.getWorld());
+		ItemFrameShopMain.getItemFrameShopManager().unload(event.getWorld());
 	}
 }
